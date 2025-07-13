@@ -103,7 +103,7 @@ export default function Home() {
         
         // Create form data for OpenAI
         const formData = new FormData()
-        formData.append('file', new Blob([Buffer.from(base64Data, 'base64')], { type: 'audio/wav' }), 'recording.wav')
+        formData.append('file', new Blob([Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))], { type: 'audio/wav' }), 'recording.wav')
         formData.append('model', 'whisper-1')
         formData.append('response_format', 'json')
 
