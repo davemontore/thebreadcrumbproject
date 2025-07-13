@@ -6,10 +6,14 @@ import { AuthService } from '../lib/auth'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [signupCode, setSignupCode] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const router = useRouter()
+
+  // SET YOUR PRIVATE SIGNUP CODE HERE
+  const PRIVATE_SIGNUP_CODE = 'breadcrumb2024' // Change this to your own secret code
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,16 +21,31 @@ export default function Login() {
     setError('')
 
     try {
-      const { user, error } = isSignUp 
-        ? await AuthService.signUp(email, password)
-        : await AuthService.signIn(email, password)
-
-      if (error) {
-        setError(error.message || 'Authentication failed')
-        setPassword('')
-      } else if (user) {
-        // Redirect to homepage
-        router.push('/')
+      if (isSignUp) {
+        // Check signup code for new accounts
+        if (signupCode !== PRIVATE_SIGNUP_CODE) {
+          setError('Invalid signup code')
+          setPassword('')
+          setIsLoading(false)
+          return
+        }
+        
+        const { user, error } = await AuthService.signUp(email, password)
+        if (error) {
+          setError(error.message || 'Account creation failed')
+          setPassword('')
+        } else if (user) {
+          router.push('/')
+        }
+      } else {
+        // Regular sign in
+        const { user, error } = await AuthService.signIn(email, password)
+        if (error) {
+          setError(error.message || 'Sign in failed')
+          setPassword('')
+        } else if (user) {
+          router.push('/')
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -68,6 +87,17 @@ export default function Login() {
               className="w-full px-4 py-3 bg-cream text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-cream/30"
               required
             />
+            
+            {isSignUp && (
+              <input
+                type="text"
+                value={signupCode}
+                onChange={(e) => setSignupCode(e.target.value)}
+                placeholder="Signup Code"
+                className="w-full px-4 py-3 bg-cream text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-cream/30"
+                required
+              />
+            )}
             
             {error && (
               <p className="text-red-400 text-sm">{error}</p>
