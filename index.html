@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Breadcrumb Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            color: #f5f5dc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            color: #f5f5dc;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            color: rgba(245, 245, 220, 0.8);
+            line-height: 1.6;
+        }
+
+        .record-button {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            border: 2px solid rgba(245, 245, 220, 0.3);
+            background-color: rgba(245, 245, 220, 0.1);
+            color: #f5f5dc;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .record-button:hover {
+            background-color: rgba(245, 245, 220, 0.2);
+            transform: scale(1.05);
+        }
+
+        .record-button.recording {
+            background-color: #dc2626;
+            border-color: #f87171;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .status {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: rgba(245, 245, 220, 0.6);
+        }
+
+        .breadbasket {
+            margin-top: 3rem;
+            text-align: left;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .breadcrumb {
+            background-color: rgba(245, 245, 220, 0.05);
+            border: 1px solid rgba(245, 245, 220, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb:hover {
+            background-color: rgba(245, 245, 220, 0.08);
+            border-color: rgba(245, 245, 220, 0.2);
+        }
+
+        .breadcrumb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-date {
+            font-size: 0.8rem;
+            color: rgba(245, 245, 220, 0.6);
+        }
+
+        .breadcrumb-tags {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background-color: rgba(245, 245, 220, 0.1);
+            color: rgba(245, 245, 220, 0.8);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            border: 1px solid rgba(245, 245, 220, 0.2);
+        }
+
+        .breadcrumb-preview p {
+            color: #f5f5dc;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .breadcrumb-full p {
+            color: #f5f5dc;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .see-more-btn, .see-less-btn {
+            background: none;
+            border: none;
+            color: rgba(245, 245, 220, 0.7);
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .see-more-btn:hover, .see-less-btn:hover {
+            color: #f5f5dc;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+            <div class="container">
+            <h1>The Breadcrumb Project</h1>
+            <p class="subtitle">A trail of wisdom for your kids to follow after you're gone.</p>
+            
+            <button class="record-button" id="recordButton">
+                🎤
+            </button>
+            
+            <p class="status" id="status">Tap to record a breadcrumb</p>
+
+            <div class="breadbasket" id="breadbasket">
+                <h2 style="margin-bottom: 2rem; font-weight: 300; color: rgba(245, 245, 220, 0.8); text-align: center;">Breadbasket</h2>
+            </div>
+        </div>
+
+    <script src="config.js"></script>
+    <script>
+        const recordButton = document.getElementById('recordButton');
+        const status = document.getElementById('status');
+        const breadbasket = document.getElementById('breadbasket');
+        
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+
+        recordButton.addEventListener('click', async () => {
+            if (!isRecording) {
+                // Start recording
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        
+                        // Create a new breadcrumb entry
+                        const now = new Date();
+                        const dateString = now.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        const timeString = now.toLocaleTimeString('en-US', { 
+                            hour: 'numeric', 
+                            minute: '2-digit' 
+                        });
+                        
+                        const breadcrumb = document.createElement('div');
+                        breadcrumb.className = 'breadcrumb';
+                        breadcrumb.innerHTML = `
+                            <div class="breadcrumb-header">
+                                <div class="breadcrumb-date">${dateString} - ${timeString}</div>
+                                <div class="breadcrumb-tags">
+                                    <span class="tag">#thought</span>
+                                    <span class="tag">#new</span>
+                                </div>
+                            </div>
+                            <div class="breadcrumb-preview">
+                                <p>🎵 Audio recorded successfully! (${Math.round(audioBlob.size / 1024)}KB)</p>
+                                <button class="see-more-btn">See More</button>
+                            </div>
+                            <div class="breadcrumb-full hidden">
+                                <p>Your audio has been captured and is ready for transcription. Once we connect to OpenAI, this will be automatically converted to beautifully formatted text with intelligent tagging.</p>
+                                <p>File size: ${Math.round(audioBlob.size / 1024)}KB | Duration: ~${Math.round(audioBlob.size / 16000)} seconds</p>
+                                <button class="see-less-btn">See Less</button>
+                            </div>
+                        `;
+                        
+                        // Add the new breadcrumb to the breadbasket
+                        const existingBreadcrumb = breadbasket.querySelector('.breadcrumb');
+                        if (existingBreadcrumb) {
+                            breadbasket.insertBefore(breadcrumb, existingBreadcrumb.nextSibling);
+                        } else {
+                            breadbasket.appendChild(breadcrumb);
+                        }
+                        
+                        // Start transcription
+                        transcribeAudio(audioBlob, breadcrumb);
+                        
+                        // Reset
+                        audioChunks = [];
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordButton.classList.add('recording');
+                    recordButton.innerHTML = '⏹️';
+                    status.textContent = 'Recording... Tap to stop';
+                    
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    status.textContent = 'Error: Could not access microphone';
+                }
+            } else {
+                // Stop recording
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                
+                isRecording = false;
+                recordButton.classList.remove('recording');
+                recordButton.innerHTML = '🎤';
+                status.textContent = 'Tap to record a breadcrumb';
+            }
+        });
+
+        // Add event listeners for See More/See Less buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('see-more-btn')) {
+                const breadcrumb = e.target.closest('.breadcrumb');
+                breadcrumb.querySelector('.breadcrumb-preview').classList.add('hidden');
+                breadcrumb.querySelector('.breadcrumb-full').classList.remove('hidden');
+            }
+            
+            if (e.target.classList.contains('see-less-btn')) {
+                const breadcrumb = e.target.closest('.breadcrumb');
+                breadcrumb.querySelector('.breadcrumb-full').classList.add('hidden');
+                breadcrumb.querySelector('.breadcrumb-preview').classList.remove('hidden');
+            }
+        });
+
+        // Function to transcribe audio using OpenAI
+        async function transcribeAudio(audioBlob, breadcrumbElement) {
+            try {
+                // Check if API key is set
+                if (config.openaiApiKey === 'YOUR_OPENAI_API_KEY_HERE') {
+                    throw new Error('Please set your OpenAI API key in config.js');
+                }
+
+                // Update status
+                breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = '🎵 Transcribing audio...';
+                
+                // Convert audio to the format OpenAI expects
+                const formData = new FormData();
+                formData.append('file', audioBlob, 'recording.mp3');
+                formData.append('model', 'whisper-1');
+                formData.append('response_format', 'json');
+
+                // Send to OpenAI
+                const response = await fetch(config.openaiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${config.openaiApiKey}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const transcription = result.text;
+
+                // Generate tags and format the content
+                const formattedContent = await generateTagsAndFormat(transcription);
+
+                // Update the breadcrumb with the transcription
+                updateBreadcrumbWithTranscription(breadcrumbElement, transcription, formattedContent.tags);
+
+            } catch (error) {
+                console.error('Transcription error:', error);
+                breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Function to generate tags and format content
+        async function generateTagsAndFormat(text) {
+            // For now, return simple tags based on content
+            const tags = [];
+            
+            if (text.toLowerCase().includes('work') || text.toLowerCase().includes('job')) tags.push('#work');
+            if (text.toLowerCase().includes('family') || text.toLowerCase().includes('home')) tags.push('#family');
+            if (text.toLowerCase().includes('idea') || text.toLowerCase().includes('think')) tags.push('#idea');
+            if (text.toLowerCase().includes('feeling') || text.toLowerCase().includes('emotion')) tags.push('#feeling');
+            if (text.toLowerCase().includes('memory') || text.toLowerCase().includes('remember')) tags.push('#memory');
+            
+            // Default tags
+            if (tags.length === 0) tags.push('#thought', '#reflection');
+            
+            return { tags };
+        }
+
+        // Function to update breadcrumb with transcription
+        function updateBreadcrumbWithTranscription(breadcrumbElement, transcription, tags) {
+            // Update preview (first 3 lines)
+            const previewText = transcription.split('\n').slice(0, 3).join('\n');
+            breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = previewText;
+            
+            // Update full content
+            breadcrumbElement.querySelector('.breadcrumb-full p').textContent = transcription;
+            
+            // Update tags
+            const tagsContainer = breadcrumbElement.querySelector('.breadcrumb-tags');
+            tagsContainer.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        }
+    </script>
+</body>
+</html> 
