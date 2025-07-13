@@ -1,32 +1,35 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import { AuthService } from '../lib/auth'
 
 export default function Login() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
 
-    // SET YOUR CREDENTIALS HERE - Change these to your desired username and password
-    const correctUsername = 'davemontore' // Change this to your desired username
-    const correctPassword = 'BizzyBell1225!@' // Change this to your desired password
-    
-    if (username === correctUsername && password === correctPassword) {
-      // Store authentication in localStorage
-      localStorage.setItem('authenticated', 'true')
-      localStorage.setItem('loginTime', Date.now().toString())
-      
-      // Redirect to homepage
-      router.push('/')
-    } else {
-      setError('Invalid username or password')
+    try {
+      const { user, error } = isSignUp 
+        ? await AuthService.signUp(email, password)
+        : await AuthService.signIn(email, password)
+
+      if (error) {
+        setError(error.message || 'Authentication failed')
+        setPassword('')
+      } else if (user) {
+        // Redirect to homepage
+        router.push('/')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
       setPassword('')
     }
     
@@ -47,12 +50,12 @@ export default function Login() {
             The Breadcrumb Project
           </h1>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleAuth} className="space-y-4">
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
               className="w-full px-4 py-3 bg-cream text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-cream/30"
               required
             />
@@ -75,7 +78,15 @@ export default function Login() {
               disabled={isLoading}
               className="w-full px-4 py-3 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors disabled:opacity-50"
             >
-              {isLoading ? 'Logging in...' : 'Access Journal'}
+              {isLoading ? (isSignUp ? 'Creating Account...' : 'Logging in...') : (isSignUp ? 'Create Account' : 'Access Journal')}
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="w-full px-4 py-2 text-cream/60 hover:text-cream/80 transition-colors text-sm"
+            >
+              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
             </button>
           </form>
         </div>
