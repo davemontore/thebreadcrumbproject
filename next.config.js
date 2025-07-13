@@ -2,10 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   trailingSlash: true,
-  exportPathMap: async function () {
-    return {
-      '/': { page: '/' }
-    }
+  output: 'export',
+  distDir: 'out',
+  images: {
+    unoptimized: true
   }
 }
 
