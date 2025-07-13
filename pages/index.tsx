@@ -123,29 +123,16 @@ export default function Home() {
 
         const result = await response.json()
         
-        // Create new breadcrumb
-        const now = new Date()
-        const newBreadcrumb = {
-          id: Date.now().toString(),
-          date: now.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          }),
-          time: now.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit' 
-          }),
-          transcription: result.text,
-          tags: generateTags(result.text),
-          type: 'audio'
+        // Save to Supabase database
+        if (user) {
+          const tags = generateTags(result.text)
+          await DatabaseService.createBreadcrumb(
+            user.id,
+            result.text,
+            tags,
+            'audio'
+          )
         }
-
-        // Load existing breadcrumbs, add new one, save back
-        const saved = localStorage.getItem('breadcrumbs')
-        const existingBreadcrumbs = saved ? JSON.parse(saved) : []
-        const updatedBreadcrumbs = [newBreadcrumb, ...existingBreadcrumbs]
-        localStorage.setItem('breadcrumbs', JSON.stringify(updatedBreadcrumbs))
         
         // No confirmation dialog - just silently save for maximum elegance
       }
