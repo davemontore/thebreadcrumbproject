@@ -54,10 +54,13 @@
             color: #f5f5dc;
             font-size: 1rem;
             margin-bottom: 1rem;
+            text-align: center;
+            text-transform: lowercase;
         }
 
         .username-input::placeholder, .password-input::placeholder {
             color: rgba(245, 245, 220, 0.5);
+            text-transform: lowercase;
         }
 
         .login-btn {
@@ -302,9 +305,8 @@
     <!-- Login Screen -->
     <div class="login-container" id="loginContainer">
         <h1>The Breadcrumb Project</h1>
-        <p>Enter your credentials to access your personal journal</p>
-        <input type="text" class="username-input" id="usernameInput" placeholder="Username" />
-        <input type="password" class="password-input" id="passwordInput" placeholder="Password" />
+        <input type="text" class="username-input" id="usernameInput" placeholder="username" />
+        <input type="password" class="password-input" id="passwordInput" placeholder="password" />
         <button class="login-btn" onclick="login()">Access Journal</button>
         <div class="error-message" id="errorMessage">Invalid username or password</div>
     </div>
