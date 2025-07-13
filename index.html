@@ -45,7 +45,7 @@
             line-height: 1.6;
         }
 
-        .password-input {
+        .username-input, .password-input {
             width: 100%;
             padding: 12px;
             background-color: rgba(245, 245, 220, 0.1);
@@ -56,7 +56,7 @@
             margin-bottom: 1rem;
         }
 
-        .password-input::placeholder {
+        .username-input::placeholder, .password-input::placeholder {
             color: rgba(245, 245, 220, 0.5);
         }
 
@@ -302,10 +302,11 @@
     <!-- Login Screen -->
     <div class="login-container" id="loginContainer">
         <h1>The Breadcrumb Project</h1>
-        <p>Enter your password to access your personal journal</p>
-        <input type="password" class="password-input" id="passwordInput" placeholder="Enter password" />
+        <p>Enter your credentials to access your personal journal</p>
+        <input type="text" class="username-input" id="usernameInput" placeholder="Username" />
+        <input type="password" class="password-input" id="passwordInput" placeholder="Password" />
         <button class="login-btn" onclick="login()">Access Journal</button>
-        <div class="error-message" id="errorMessage">Incorrect password</div>
+        <div class="error-message" id="errorMessage">Invalid username or password</div>
     </div>
 
     <!-- Main App (hidden until authenticated) -->
@@ -333,8 +334,9 @@
     </div>
 
     <script>
-        // Password protection
-        const APP_PASSWORD = 'your-secure-password-here'; // Change this to your desired password
+        // SET YOUR CREDENTIALS HERE - Change these to your desired username and password
+        const CORRECT_USERNAME = 'davemontore'; // Change this to your desired username
+        const CORRECT_PASSWORD = 'BizzyBell1225!@'; // Change this to your desired password
         
         // Check if already authenticated
         if (localStorage.getItem('authenticated') === 'true') {
@@ -342,11 +344,13 @@
         }
 
         function login() {
+            const username = document.getElementById('usernameInput').value;
             const password = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            if (password === APP_PASSWORD) {
+            if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
                 localStorage.setItem('authenticated', 'true');
+                localStorage.setItem('loginTime', Date.now().toString());
                 showMainApp();
             } else {
                 errorMessage.style.display = 'block';
@@ -356,6 +360,7 @@
 
         function logout() {
             localStorage.removeItem('authenticated');
+            localStorage.removeItem('loginTime');
             localStorage.removeItem('openaiApiKey'); // Also clear API key for security
             showLoginScreen();
         }
@@ -371,7 +376,13 @@
             document.getElementById('mainContainer').style.display = 'none';
         }
 
-        // Handle Enter key in password field
+        // Handle Enter key in input fields
+        document.getElementById('usernameInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('passwordInput').focus();
+            }
+        });
+
         document.getElementById('passwordInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 login();
