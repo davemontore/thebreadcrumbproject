@@ -194,6 +194,28 @@
         .api-key-input button:hover {
             background-color: rgba(245, 245, 220, 0.2);
         }
+
+        .editable {
+            cursor: text;
+            transition: all 0.2s ease;
+        }
+
+        .editable:hover {
+            background-color: rgba(245, 245, 220, 0.05);
+            border-radius: 4px;
+        }
+
+        .editing {
+            background-color: rgba(245, 245, 220, 0.1) !important;
+            border: 1px solid rgba(245, 245, 220, 0.3) !important;
+            border-radius: 4px !important;
+            padding: 4px !important;
+            outline: none !important;
+        }
+
+        .editing:focus {
+            outline: none !important;
+        }
     </style>
 </head>
 <body>
@@ -234,6 +256,9 @@
         if (openaiApiKey) {
             apiKeyInput.style.display = 'none';
         }
+
+        // Load saved breadcrumbs on page load
+        loadSavedBreadcrumbs();
 
         function saveApiKey() {
             const key = apiKeyField.value.trim();
@@ -413,14 +438,142 @@
         function updateBreadcrumbWithTranscription(breadcrumbElement, transcription, tags) {
             // Update preview (first 3 lines)
             const previewText = transcription.split('\n').slice(0, 3).join('\n');
-            breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = previewText;
+            const previewElement = breadcrumbElement.querySelector('.breadcrumb-preview p');
+            previewElement.textContent = previewText;
+            previewElement.classList.add('editable');
             
             // Update full content
-            breadcrumbElement.querySelector('.breadcrumb-full p').textContent = transcription;
+            const fullElement = breadcrumbElement.querySelector('.breadcrumb-full p');
+            fullElement.textContent = transcription;
+            fullElement.classList.add('editable');
             
             // Update tags
             const tagsContainer = breadcrumbElement.querySelector('.breadcrumb-tags');
             tagsContainer.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            
+            // Add editing functionality
+            addEditingFunctionality(previewElement, fullElement);
+        }
+
+        // Function to add editing functionality to elements
+        function addEditingFunctionality(previewElement, fullElement) {
+            const elements = [previewElement, fullElement];
+            
+            elements.forEach(element => {
+                element.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('editing')) return; // Already editing
+                    
+                    startEditing(this);
+                });
+            });
+        }
+
+        // Function to start editing
+        function startEditing(element) {
+            const originalText = element.textContent;
+            
+            // Create textarea for editing
+            const textarea = document.createElement('textarea');
+            textarea.value = originalText;
+            textarea.className = 'editing';
+            textarea.style.cssText = `
+                width: 100%;
+                min-height: ${element.offsetHeight}px;
+                background-color: rgba(245, 245, 220, 0.1);
+                border: 1px solid rgba(245, 245, 220, 0.3);
+                border-radius: 4px;
+                padding: 4px;
+                color: #f5f5dc;
+                font-family: inherit;
+                font-size: inherit;
+                line-height: inherit;
+                resize: vertical;
+                outline: none;
+            `;
+            
+            // Replace element with textarea
+            element.style.display = 'none';
+            element.parentNode.insertBefore(textarea, element);
+            textarea.focus();
+            textarea.select();
+            
+            // Handle save and cancel
+            function saveEdit() {
+                const newText = textarea.value.trim();
+                if (newText !== originalText) {
+                    element.textContent = newText;
+                    // Save to localStorage for persistence
+                    saveBreadcrumbToStorage();
+                }
+                element.style.display = '';
+                textarea.remove();
+            }
+            
+            function cancelEdit() {
+                element.style.display = '';
+                textarea.remove();
+            }
+            
+            // Event listeners
+            textarea.addEventListener('blur', saveEdit);
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    saveEdit();
+                } else if (e.key === 'Escape') {
+                    cancelEdit();
+                }
+            });
+        }
+
+        // Function to save breadcrumb to localStorage
+        function saveBreadcrumbToStorage() {
+            const breadcrumbs = [];
+            document.querySelectorAll('.breadcrumb').forEach(breadcrumb => {
+                const date = breadcrumb.querySelector('.breadcrumb-date').textContent;
+                const preview = breadcrumb.querySelector('.breadcrumb-preview p').textContent;
+                const full = breadcrumb.querySelector('.breadcrumb-full p').textContent;
+                const tags = Array.from(breadcrumb.querySelectorAll('.tag')).map(tag => tag.textContent);
+                
+                breadcrumbs.push({ date, preview, full, tags });
+            });
+            
+            localStorage.setItem('breadcrumbs', JSON.stringify(breadcrumbs));
+        }
+
+        // Function to load saved breadcrumbs
+        function loadSavedBreadcrumbs() {
+            const saved = localStorage.getItem('breadcrumbs');
+            if (saved) {
+                const breadcrumbs = JSON.parse(saved);
+                breadcrumbs.forEach(breadcrumb => {
+                    const breadcrumbElement = document.createElement('div');
+                    breadcrumbElement.className = 'breadcrumb';
+                    breadcrumbElement.innerHTML = `
+                        <div class="breadcrumb-header">
+                            <div class="breadcrumb-date">${breadcrumb.date}</div>
+                            <div class="breadcrumb-tags">
+                                ${breadcrumb.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="breadcrumb-preview">
+                            <p class="editable">${breadcrumb.preview}</p>
+                            <button class="see-more-btn">See More</button>
+                        </div>
+                        <div class="breadcrumb-full hidden">
+                            <p class="editable">${breadcrumb.full}</p>
+                            <button class="see-less-btn">See Less</button>
+                        </div>
+                    `;
+                    
+                    breadbasket.appendChild(breadcrumbElement);
+                    
+                    // Add editing functionality to loaded breadcrumbs
+                    const previewElement = breadcrumbElement.querySelector('.breadcrumb-preview p');
+                    const fullElement = breadcrumbElement.querySelector('.breadcrumb-full p');
+                    addEditingFunctionality(previewElement, fullElement);
+                });
+            }
         }
     </script>
 </body>
