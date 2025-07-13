@@ -146,8 +146,7 @@ export default function Home() {
         const updatedBreadcrumbs = [newBreadcrumb, ...existingBreadcrumbs]
         localStorage.setItem('breadcrumbs', JSON.stringify(updatedBreadcrumbs))
         
-        // Show success message
-        alert('Breadcrumb saved! Check your Breadcrumb Basket to view it.')
+        // No confirmation dialog - just silently save for maximum elegance
       }
     } catch (error) {
       console.error('Transcription error:', error)
@@ -188,8 +187,7 @@ export default function Home() {
     setTextInput('')
     setIsTextExpanded(false)
     
-    // Show success message
-    alert('Breadcrumb saved! Check your Breadcrumb Basket to view it.')
+    // No confirmation dialog - just silently save for maximum elegance
   }
 
   const generateTags = (text: string): string[] => {

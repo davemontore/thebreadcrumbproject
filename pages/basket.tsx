@@ -46,7 +46,26 @@ export default function Basket() {
     const saved = localStorage.getItem('breadcrumbs')
     if (saved) {
       try {
-        setBreadcrumbs(JSON.parse(saved))
+        const rawBreadcrumbs = JSON.parse(saved)
+        
+        // Handle both old and new data structures
+        const processedBreadcrumbs = rawBreadcrumbs.map((breadcrumb: any) => {
+          // If it's the old structure (has 'preview' and 'full' fields)
+          if (breadcrumb.preview && breadcrumb.full) {
+            return {
+              id: breadcrumb.id || Date.now().toString(),
+              date: breadcrumb.date || 'Unknown Date',
+              time: breadcrumb.time || 'Unknown Time',
+              transcription: breadcrumb.full || breadcrumb.preview,
+              tags: breadcrumb.tags || ['#legacy'],
+              type: 'text'
+            }
+          }
+          // If it's already the new structure
+          return breadcrumb
+        })
+        
+        setBreadcrumbs(processedBreadcrumbs)
       } catch (error) {
         console.error('Error loading breadcrumbs:', error)
       }
