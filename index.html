@@ -22,9 +22,71 @@
             padding: 20px;
         }
 
+        .login-container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+            background-color: rgba(245, 245, 220, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(245, 245, 220, 0.2);
+        }
+
+        .login-container h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            color: #f5f5dc;
+        }
+
+        .login-container p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: rgba(245, 245, 220, 0.8);
+            line-height: 1.6;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 8px;
+            color: #f5f5dc;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .password-input::placeholder {
+            color: rgba(245, 245, 220, 0.5);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 8px;
+            color: #f5f5dc;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background-color: rgba(245, 245, 220, 0.2);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
         .container {
             text-align: center;
             max-width: 400px;
+            display: none;
         }
 
         h1 {
@@ -216,10 +278,40 @@
         .editing:focus {
             outline: none !important;
         }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 6px;
+            color: #f5f5dc;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(245, 245, 220, 0.2);
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <h1>The Breadcrumb Project</h1>
+        <p>Enter your password to access your personal journal</p>
+        <input type="password" class="password-input" id="passwordInput" placeholder="Enter password" />
+        <button class="login-btn" onclick="login()">Access Journal</button>
+        <div class="error-message" id="errorMessage">Incorrect password</div>
+    </div>
+
+    <!-- Main App (hidden until authenticated) -->
+    <div class="container" id="mainContainer">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        
         <h1>The Breadcrumb Project</h1>
         <p class="subtitle">A trail of wisdom for your kids to follow after you're gone.</p>
         
@@ -241,339 +333,390 @@
     </div>
 
     <script>
-        const recordButton = document.getElementById('recordButton');
-        const status = document.getElementById('status');
-        const breadbasket = document.getElementById('breadbasket');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const apiKeyField = document.getElementById('apiKeyField');
+        // Password protection
+        const APP_PASSWORD = 'your-secure-password-here'; // Change this to your desired password
         
-        let isRecording = false;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let openaiApiKey = localStorage.getItem('openaiApiKey');
-
-        // Check if API key is already saved
-        if (openaiApiKey) {
-            apiKeyInput.style.display = 'none';
+        // Check if already authenticated
+        if (localStorage.getItem('authenticated') === 'true') {
+            showMainApp();
         }
 
-        // Load saved breadcrumbs on page load
-        loadSavedBreadcrumbs();
-
-        function saveApiKey() {
-            const key = apiKeyField.value.trim();
-            if (key && key.startsWith('sk-')) {
-                openaiApiKey = key;
-                localStorage.setItem('openaiApiKey', key);
-                apiKeyInput.style.display = 'none';
-                status.textContent = 'API key saved! Tap to record a breadcrumb';
+        function login() {
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (password === APP_PASSWORD) {
+                localStorage.setItem('authenticated', 'true');
+                showMainApp();
             } else {
-                alert('Please enter a valid OpenAI API key (starts with sk-)');
+                errorMessage.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
             }
         }
 
-        recordButton.addEventListener('click', async () => {
-            if (!openaiApiKey) {
-                alert('Please enter your OpenAI API key first');
-                return;
+        function logout() {
+            localStorage.removeItem('authenticated');
+            localStorage.removeItem('openaiApiKey'); // Also clear API key for security
+            showLoginScreen();
+        }
+
+        function showMainApp() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            initializeApp();
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('mainContainer').style.display = 'none';
+        }
+
+        // Handle Enter key in password field
+        document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+
+        // Main app functionality
+        function initializeApp() {
+            const recordButton = document.getElementById('recordButton');
+            const status = document.getElementById('status');
+            const breadbasket = document.getElementById('breadbasket');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const apiKeyField = document.getElementById('apiKeyField');
+            
+            let isRecording = false;
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let openaiApiKey = localStorage.getItem('openaiApiKey');
+
+            // Check if API key is already saved
+            if (openaiApiKey) {
+                apiKeyInput.style.display = 'none';
             }
 
-            if (!isRecording) {
-                // Start recording
+            // Load saved breadcrumbs on page load
+            loadSavedBreadcrumbs();
+
+            function saveApiKey() {
+                const key = apiKeyField.value.trim();
+                if (key && key.startsWith('sk-')) {
+                    openaiApiKey = key;
+                    localStorage.setItem('openaiApiKey', key);
+                    apiKeyInput.style.display = 'none';
+                    status.textContent = 'API key saved! Tap to record a breadcrumb';
+                } else {
+                    alert('Please enter a valid OpenAI API key (starts with sk-)');
+                }
+            }
+
+            recordButton.addEventListener('click', async () => {
+                if (!openaiApiKey) {
+                    alert('Please enter your OpenAI API key first');
+                    return;
+                }
+
+                if (!isRecording) {
+                    // Start recording
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mediaRecorder = new MediaRecorder(stream);
+                        
+                        mediaRecorder.ondataavailable = (event) => {
+                            audioChunks.push(event.data);
+                        };
+                        
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            
+                            // Create a new breadcrumb entry
+                            const now = new Date();
+                            const dateString = now.toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            });
+                            const timeString = now.toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit' 
+                            });
+                            
+                            const breadcrumb = document.createElement('div');
+                            breadcrumb.className = 'breadcrumb';
+                            breadcrumb.innerHTML = `
+                                <div class="breadcrumb-header">
+                                    <div class="breadcrumb-date">${dateString} - ${timeString}</div>
+                                    <div class="breadcrumb-tags">
+                                        <span class="tag">#processing</span>
+                                    </div>
+                                </div>
+                                <div class="breadcrumb-preview">
+                                    <p>🎵 Transcribing audio...</p>
+                                    <button class="see-more-btn">See More</button>
+                                </div>
+                                <div class="breadcrumb-full hidden">
+                                    <p>Processing your audio with OpenAI...</p>
+                                    <button class="see-less-btn">See Less</button>
+                                </div>
+                            `;
+                            
+                            // Add the new breadcrumb to the breadbasket
+                            const existingBreadcrumb = breadbasket.querySelector('.breadcrumb');
+                            if (existingBreadcrumb) {
+                                breadbasket.insertBefore(breadcrumb, existingBreadcrumb.nextSibling);
+                            } else {
+                                breadbasket.appendChild(breadcrumb);
+                            }
+                            
+                            // Start transcription
+                            transcribeAudio(audioBlob, breadcrumb);
+                            
+                            // Reset
+                            audioChunks = [];
+                            stream.getTracks().forEach(track => track.stop());
+                        };
+                        
+                        mediaRecorder.start();
+                        isRecording = true;
+                        recordButton.classList.add('recording');
+                        recordButton.innerHTML = '⏹️';
+                        status.textContent = 'Recording... Tap to stop';
+                        
+                    } catch (error) {
+                        console.error('Error accessing microphone:', error);
+                        status.textContent = 'Error: Could not access microphone';
+                    }
+                } else {
+                    // Stop recording
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                    
+                    isRecording = false;
+                    recordButton.classList.remove('recording');
+                    recordButton.innerHTML = '🎤';
+                    status.textContent = 'Tap to record a breadcrumb';
+                }
+            });
+
+            // Add event listeners for See More/See Less buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('see-more-btn')) {
+                    const breadcrumb = e.target.closest('.breadcrumb');
+                    breadcrumb.querySelector('.breadcrumb-preview').classList.add('hidden');
+                    breadcrumb.querySelector('.breadcrumb-full').classList.remove('hidden');
+                }
+                
+                if (e.target.classList.contains('see-less-btn')) {
+                    const breadcrumb = e.target.closest('.breadcrumb');
+                    breadcrumb.querySelector('.breadcrumb-full').classList.add('hidden');
+                    breadcrumb.querySelector('.breadcrumb-preview').classList.remove('hidden');
+                }
+            });
+
+            // Function to transcribe audio using OpenAI
+            async function transcribeAudio(audioBlob, breadcrumbElement) {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    // Update status
+                    breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = '🎵 Transcribing audio...';
                     
-                    mediaRecorder.ondataavailable = (event) => {
-                        audioChunks.push(event.data);
-                    };
+                    // Convert audio to the format OpenAI expects
+                    const formData = new FormData();
+                    formData.append('file', audioBlob, 'recording.mp3');
+                    formData.append('model', 'whisper-1');
+                    formData.append('response_format', 'json');
+
+                    // Send to OpenAI
+                    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${openaiApiKey}`
+                        },
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`OpenAI API error: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const transcription = result.text;
+
+                    // Generate tags and format the content
+                    const formattedContent = await generateTagsAndFormat(transcription);
+
+                    // Update the breadcrumb with the transcription
+                    updateBreadcrumbWithTranscription(breadcrumbElement, transcription, formattedContent.tags);
+
+                } catch (error) {
+                    console.error('Transcription error:', error);
+                    breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = `❌ Error: ${error.message}`;
+                }
+            }
+
+            // Function to generate tags and format content
+            async function generateTagsAndFormat(text) {
+                // For now, return simple tags based on content
+                const tags = [];
+                
+                if (text.toLowerCase().includes('work') || text.toLowerCase().includes('job')) tags.push('#work');
+                if (text.toLowerCase().includes('family') || text.toLowerCase().includes('home')) tags.push('#family');
+                if (text.toLowerCase().includes('idea') || text.toLowerCase().includes('think')) tags.push('#idea');
+                if (text.toLowerCase().includes('feeling') || text.toLowerCase().includes('emotion')) tags.push('#feeling');
+                if (text.toLowerCase().includes('memory') || text.toLowerCase().includes('remember')) tags.push('#memory');
+                if (text.toLowerCase().includes('wisdom') || text.toLowerCase().includes('learn')) tags.push('#wisdom');
+                
+                // Default tags
+                if (tags.length === 0) tags.push('#thought', '#reflection');
+                
+                return { tags };
+            }
+
+            // Function to update breadcrumb with transcription
+            function updateBreadcrumbWithTranscription(breadcrumbElement, transcription, tags) {
+                // Update preview (first 3 lines)
+                const previewText = transcription.split('\n').slice(0, 3).join('\n');
+                const previewElement = breadcrumbElement.querySelector('.breadcrumb-preview p');
+                previewElement.textContent = previewText;
+                previewElement.classList.add('editable');
+                
+                // Update full content
+                const fullElement = breadcrumbElement.querySelector('.breadcrumb-full p');
+                fullElement.textContent = transcription;
+                fullElement.classList.add('editable');
+                
+                // Update tags
+                const tagsContainer = breadcrumbElement.querySelector('.breadcrumb-tags');
+                tagsContainer.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                
+                // Add editing functionality
+                addEditingFunctionality(previewElement, fullElement);
+            }
+
+            // Function to add editing functionality to elements
+            function addEditingFunctionality(previewElement, fullElement) {
+                const elements = [previewElement, fullElement];
+                
+                elements.forEach(element => {
+                    element.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('editing')) return; // Already editing
+                        
+                        startEditing(this);
+                    });
+                });
+            }
+
+            // Function to start editing
+            function startEditing(element) {
+                const originalText = element.textContent;
+                
+                // Create textarea for editing
+                const textarea = document.createElement('textarea');
+                textarea.value = originalText;
+                textarea.className = 'editing';
+                textarea.style.cssText = `
+                    width: 100%;
+                    min-height: ${element.offsetHeight}px;
+                    background-color: rgba(245, 245, 220, 0.1);
+                    border: 1px solid rgba(245, 245, 220, 0.3);
+                    border-radius: 4px;
+                    padding: 4px;
+                    color: #f5f5dc;
+                    font-family: inherit;
+                    font-size: inherit;
+                    line-height: inherit;
+                    resize: vertical;
+                    outline: none;
+                `;
+                
+                // Replace element with textarea
+                element.style.display = 'none';
+                element.parentNode.insertBefore(textarea, element);
+                textarea.focus();
+                textarea.select();
+                
+                // Handle save and cancel
+                function saveEdit() {
+                    const newText = textarea.value.trim();
+                    if (newText !== originalText) {
+                        element.textContent = newText;
+                        // Save to localStorage for persistence
+                        saveBreadcrumbToStorage();
+                    }
+                    element.style.display = '';
+                    textarea.remove();
+                }
+                
+                function cancelEdit() {
+                    element.style.display = '';
+                    textarea.remove();
+                }
+                
+                // Event listeners
+                textarea.addEventListener('blur', saveEdit);
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveEdit();
+                    } else if (e.key === 'Escape') {
+                        cancelEdit();
+                    }
+                });
+            }
+
+            // Function to save breadcrumb to localStorage
+            function saveBreadcrumbToStorage() {
+                const breadcrumbs = [];
+                document.querySelectorAll('.breadcrumb').forEach(breadcrumb => {
+                    const date = breadcrumb.querySelector('.breadcrumb-date').textContent;
+                    const preview = breadcrumb.querySelector('.breadcrumb-preview p').textContent;
+                    const full = breadcrumb.querySelector('.breadcrumb-full p').textContent;
+                    const tags = Array.from(breadcrumb.querySelectorAll('.tag')).map(tag => tag.textContent);
                     
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        
-                        // Create a new breadcrumb entry
-                        const now = new Date();
-                        const dateString = now.toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        });
-                        const timeString = now.toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit' 
-                        });
-                        
-                        const breadcrumb = document.createElement('div');
-                        breadcrumb.className = 'breadcrumb';
-                        breadcrumb.innerHTML = `
+                    breadcrumbs.push({ date, preview, full, tags });
+                });
+                
+                localStorage.setItem('breadcrumbs', JSON.stringify(breadcrumbs));
+            }
+
+            // Function to load saved breadcrumbs
+            function loadSavedBreadcrumbs() {
+                const saved = localStorage.getItem('breadcrumbs');
+                if (saved) {
+                    const breadcrumbs = JSON.parse(saved);
+                    breadcrumbs.forEach(breadcrumb => {
+                        const breadcrumbElement = document.createElement('div');
+                        breadcrumbElement.className = 'breadcrumb';
+                        breadcrumbElement.innerHTML = `
                             <div class="breadcrumb-header">
-                                <div class="breadcrumb-date">${dateString} - ${timeString}</div>
+                                <div class="breadcrumb-date">${breadcrumb.date}</div>
                                 <div class="breadcrumb-tags">
-                                    <span class="tag">#processing</span>
+                                    ${breadcrumb.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                                 </div>
                             </div>
                             <div class="breadcrumb-preview">
-                                <p>🎵 Transcribing audio...</p>
+                                <p class="editable">${breadcrumb.preview}</p>
                                 <button class="see-more-btn">See More</button>
                             </div>
                             <div class="breadcrumb-full hidden">
-                                <p>Processing your audio with OpenAI...</p>
+                                <p class="editable">${breadcrumb.full}</p>
                                 <button class="see-less-btn">See Less</button>
                             </div>
                         `;
                         
-                        // Add the new breadcrumb to the breadbasket
-                        const existingBreadcrumb = breadbasket.querySelector('.breadcrumb');
-                        if (existingBreadcrumb) {
-                            breadbasket.insertBefore(breadcrumb, existingBreadcrumb.nextSibling);
-                        } else {
-                            breadbasket.appendChild(breadcrumb);
-                        }
+                        breadbasket.appendChild(breadcrumbElement);
                         
-                        // Start transcription
-                        transcribeAudio(audioBlob, breadcrumb);
-                        
-                        // Reset
-                        audioChunks = [];
-                        stream.getTracks().forEach(track => track.stop());
-                    };
-                    
-                    mediaRecorder.start();
-                    isRecording = true;
-                    recordButton.classList.add('recording');
-                    recordButton.innerHTML = '⏹️';
-                    status.textContent = 'Recording... Tap to stop';
-                    
-                } catch (error) {
-                    console.error('Error accessing microphone:', error);
-                    status.textContent = 'Error: Could not access microphone';
+                        // Add editing functionality to loaded breadcrumbs
+                        const previewElement = breadcrumbElement.querySelector('.breadcrumb-preview p');
+                        const fullElement = breadcrumbElement.querySelector('.breadcrumb-full p');
+                        addEditingFunctionality(previewElement, fullElement);
+                    });
                 }
-            } else {
-                // Stop recording
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                }
-                
-                isRecording = false;
-                recordButton.classList.remove('recording');
-                recordButton.innerHTML = '🎤';
-                status.textContent = 'Tap to record a breadcrumb';
             }
-        });
 
-        // Add event listeners for See More/See Less buttons
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('see-more-btn')) {
-                const breadcrumb = e.target.closest('.breadcrumb');
-                breadcrumb.querySelector('.breadcrumb-preview').classList.add('hidden');
-                breadcrumb.querySelector('.breadcrumb-full').classList.remove('hidden');
-            }
-            
-            if (e.target.classList.contains('see-less-btn')) {
-                const breadcrumb = e.target.closest('.breadcrumb');
-                breadcrumb.querySelector('.breadcrumb-full').classList.add('hidden');
-                breadcrumb.querySelector('.breadcrumb-preview').classList.remove('hidden');
-            }
-        });
-
-        // Function to transcribe audio using OpenAI
-        async function transcribeAudio(audioBlob, breadcrumbElement) {
-            try {
-                // Update status
-                breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = '🎵 Transcribing audio...';
-                
-                // Convert audio to the format OpenAI expects
-                const formData = new FormData();
-                formData.append('file', audioBlob, 'recording.mp3');
-                formData.append('model', 'whisper-1');
-                formData.append('response_format', 'json');
-
-                // Send to OpenAI
-                const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${openaiApiKey}`
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`OpenAI API error: ${response.status}`);
-                }
-
-                const result = await response.json();
-                const transcription = result.text;
-
-                // Generate tags and format the content
-                const formattedContent = await generateTagsAndFormat(transcription);
-
-                // Update the breadcrumb with the transcription
-                updateBreadcrumbWithTranscription(breadcrumbElement, transcription, formattedContent.tags);
-
-            } catch (error) {
-                console.error('Transcription error:', error);
-                breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = `❌ Error: ${error.message}`;
-            }
-        }
-
-        // Function to generate tags and format content
-        async function generateTagsAndFormat(text) {
-            // For now, return simple tags based on content
-            const tags = [];
-            
-            if (text.toLowerCase().includes('work') || text.toLowerCase().includes('job')) tags.push('#work');
-            if (text.toLowerCase().includes('family') || text.toLowerCase().includes('home')) tags.push('#family');
-            if (text.toLowerCase().includes('idea') || text.toLowerCase().includes('think')) tags.push('#idea');
-            if (text.toLowerCase().includes('feeling') || text.toLowerCase().includes('emotion')) tags.push('#feeling');
-            if (text.toLowerCase().includes('memory') || text.toLowerCase().includes('remember')) tags.push('#memory');
-            if (text.toLowerCase().includes('wisdom') || text.toLowerCase().includes('learn')) tags.push('#wisdom');
-            
-            // Default tags
-            if (tags.length === 0) tags.push('#thought', '#reflection');
-            
-            return { tags };
-        }
-
-        // Function to update breadcrumb with transcription
-        function updateBreadcrumbWithTranscription(breadcrumbElement, transcription, tags) {
-            // Update preview (first 3 lines)
-            const previewText = transcription.split('\n').slice(0, 3).join('\n');
-            const previewElement = breadcrumbElement.querySelector('.breadcrumb-preview p');
-            previewElement.textContent = previewText;
-            previewElement.classList.add('editable');
-            
-            // Update full content
-            const fullElement = breadcrumbElement.querySelector('.breadcrumb-full p');
-            fullElement.textContent = transcription;
-            fullElement.classList.add('editable');
-            
-            // Update tags
-            const tagsContainer = breadcrumbElement.querySelector('.breadcrumb-tags');
-            tagsContainer.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-            
-            // Add editing functionality
-            addEditingFunctionality(previewElement, fullElement);
-        }
-
-        // Function to add editing functionality to elements
-        function addEditingFunctionality(previewElement, fullElement) {
-            const elements = [previewElement, fullElement];
-            
-            elements.forEach(element => {
-                element.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('editing')) return; // Already editing
-                    
-                    startEditing(this);
-                });
-            });
-        }
-
-        // Function to start editing
-        function startEditing(element) {
-            const originalText = element.textContent;
-            
-            // Create textarea for editing
-            const textarea = document.createElement('textarea');
-            textarea.value = originalText;
-            textarea.className = 'editing';
-            textarea.style.cssText = `
-                width: 100%;
-                min-height: ${element.offsetHeight}px;
-                background-color: rgba(245, 245, 220, 0.1);
-                border: 1px solid rgba(245, 245, 220, 0.3);
-                border-radius: 4px;
-                padding: 4px;
-                color: #f5f5dc;
-                font-family: inherit;
-                font-size: inherit;
-                line-height: inherit;
-                resize: vertical;
-                outline: none;
-            `;
-            
-            // Replace element with textarea
-            element.style.display = 'none';
-            element.parentNode.insertBefore(textarea, element);
-            textarea.focus();
-            textarea.select();
-            
-            // Handle save and cancel
-            function saveEdit() {
-                const newText = textarea.value.trim();
-                if (newText !== originalText) {
-                    element.textContent = newText;
-                    // Save to localStorage for persistence
-                    saveBreadcrumbToStorage();
-                }
-                element.style.display = '';
-                textarea.remove();
-            }
-            
-            function cancelEdit() {
-                element.style.display = '';
-                textarea.remove();
-            }
-            
-            // Event listeners
-            textarea.addEventListener('blur', saveEdit);
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    saveEdit();
-                } else if (e.key === 'Escape') {
-                    cancelEdit();
-                }
-            });
-        }
-
-        // Function to save breadcrumb to localStorage
-        function saveBreadcrumbToStorage() {
-            const breadcrumbs = [];
-            document.querySelectorAll('.breadcrumb').forEach(breadcrumb => {
-                const date = breadcrumb.querySelector('.breadcrumb-date').textContent;
-                const preview = breadcrumb.querySelector('.breadcrumb-preview p').textContent;
-                const full = breadcrumb.querySelector('.breadcrumb-full p').textContent;
-                const tags = Array.from(breadcrumb.querySelectorAll('.tag')).map(tag => tag.textContent);
-                
-                breadcrumbs.push({ date, preview, full, tags });
-            });
-            
-            localStorage.setItem('breadcrumbs', JSON.stringify(breadcrumbs));
-        }
-
-        // Function to load saved breadcrumbs
-        function loadSavedBreadcrumbs() {
-            const saved = localStorage.getItem('breadcrumbs');
-            if (saved) {
-                const breadcrumbs = JSON.parse(saved);
-                breadcrumbs.forEach(breadcrumb => {
-                    const breadcrumbElement = document.createElement('div');
-                    breadcrumbElement.className = 'breadcrumb';
-                    breadcrumbElement.innerHTML = `
-                        <div class="breadcrumb-header">
-                            <div class="breadcrumb-date">${breadcrumb.date}</div>
-                            <div class="breadcrumb-tags">
-                                ${breadcrumb.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="breadcrumb-preview">
-                            <p class="editable">${breadcrumb.preview}</p>
-                            <button class="see-more-btn">See More</button>
-                        </div>
-                        <div class="breadcrumb-full hidden">
-                            <p class="editable">${breadcrumb.full}</p>
-                            <button class="see-less-btn">See Less</button>
-                        </div>
-                    `;
-                    
-                    breadbasket.appendChild(breadcrumbElement);
-                    
-                    // Add editing functionality to loaded breadcrumbs
-                    const previewElement = breadcrumbElement.querySelector('.breadcrumb-preview p');
-                    const fullElement = breadcrumbElement.querySelector('.breadcrumb-full p');
-                    addEditingFunctionality(previewElement, fullElement);
-                });
-            }
+            // Make saveApiKey available globally
+            window.saveApiKey = saveApiKey;
         }
     </script>
 </body>

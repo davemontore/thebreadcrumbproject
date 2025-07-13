@@ -1,8 +1,242 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [textInput, setTextInput] = useState('')
+  const [isTextExpanded, setIsTextExpanded] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check authentication
+    const authenticated = localStorage.getItem('authenticated')
+    const loginTime = localStorage.getItem('loginTime')
+    
+    if (!authenticated || !loginTime) {
+      router.push('/login')
+      return
+    }
+
+    // Check if login is still valid (24 hours)
+    const loginTimestamp = parseInt(loginTime)
+    const now = Date.now()
+    const twentyFourHours = 24 * 60 * 60 * 1000
+
+    if (now - loginTimestamp > twentyFourHours) {
+      // Session expired, clear and redirect to login
+      localStorage.removeItem('authenticated')
+      localStorage.removeItem('loginTime')
+      router.push('/login')
+      return
+    }
+
+    setIsAuthenticated(true)
+  }, [router])
+
+  const handleLogout = () => {
+    localStorage.removeItem('authenticated')
+    localStorage.removeItem('loginTime')
+    router.push('/login')
+  }
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      const audioChunks: Blob[] = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data)
+      }
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
+        await transcribeAudio(audioBlob)
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      mediaRecorder.start()
+      setIsRecording(true)
+
+      // Store mediaRecorder reference for stopping
+      ;(window as any).mediaRecorder = mediaRecorder
+    } catch (error) {
+      console.error('Error accessing microphone:', error)
+      alert('Could not access microphone. Please check permissions.')
+    }
+  }
+
+  const stopRecording = () => {
+    const mediaRecorder = (window as any).mediaRecorder
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop()
+    }
+    setIsRecording(false)
+  }
+
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setIsLoading(true)
+    
+    try {
+      // Get API key from localStorage (stored by user in browser)
+      const openaiApiKey = localStorage.getItem('openaiApiKey')
+      
+      if (!openaiApiKey) {
+        alert('Please enter your OpenAI API key first. You can do this in your browser settings.')
+        setIsLoading(false)
+        return
+      }
+
+      // Convert blob to base64
+      const reader = new FileReader()
+      reader.readAsDataURL(audioBlob)
+      
+      reader.onload = async () => {
+        const base64Audio = reader.result as string
+        
+        // Extract base64 data (remove data:audio/wav;base64, prefix)
+        const base64Data = base64Audio.split(',')[1]
+        
+        // Create form data for OpenAI
+        const formData = new FormData()
+        formData.append('file', new Blob([Buffer.from(base64Data, 'base64')], { type: 'audio/wav' }), 'recording.wav')
+        formData.append('model', 'whisper-1')
+        formData.append('response_format', 'json')
+
+        // Send to OpenAI directly
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+          },
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`)
+        }
+
+        const result = await response.json()
+        
+        // Create new breadcrumb
+        const now = new Date()
+        const newBreadcrumb = {
+          id: Date.now().toString(),
+          date: now.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          time: now.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit' 
+          }),
+          transcription: result.text,
+          tags: generateTags(result.text),
+          type: 'audio'
+        }
+
+        // Load existing breadcrumbs, add new one, save back
+        const saved = localStorage.getItem('breadcrumbs')
+        const existingBreadcrumbs = saved ? JSON.parse(saved) : []
+        const updatedBreadcrumbs = [newBreadcrumb, ...existingBreadcrumbs]
+        localStorage.setItem('breadcrumbs', JSON.stringify(updatedBreadcrumbs))
+        
+        // Show success message
+        alert('Breadcrumb saved! Check your Breadcrumb Basket to view it.')
+      }
+    } catch (error) {
+      console.error('Transcription error:', error)
+      alert(`Transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleTextSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!textInput.trim()) return
+
+    const now = new Date()
+    const newBreadcrumb = {
+      id: Date.now().toString(),
+      date: now.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      time: now.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit' 
+      }),
+      transcription: textInput.trim(),
+      tags: generateTags(textInput),
+      type: 'text'
+    }
+
+    // Load existing breadcrumbs, add new one, save back
+    const saved = localStorage.getItem('breadcrumbs')
+    const existingBreadcrumbs = saved ? JSON.parse(saved) : []
+    const updatedBreadcrumbs = [newBreadcrumb, ...existingBreadcrumbs]
+    localStorage.setItem('breadcrumbs', JSON.stringify(updatedBreadcrumbs))
+    
+    setTextInput('')
+    setIsTextExpanded(false)
+    
+    // Show success message
+    alert('Breadcrumb saved! Check your Breadcrumb Basket to view it.')
+  }
+
+  const generateTags = (text: string): string[] => {
+    const tags: string[] = []
+    const lowerText = text.toLowerCase()
+    
+    if (lowerText.includes('work') || lowerText.includes('job')) tags.push('#work')
+    if (lowerText.includes('family') || lowerText.includes('home')) tags.push('#family')
+    if (lowerText.includes('idea') || lowerText.includes('think')) tags.push('#idea')
+    if (lowerText.includes('feeling') || lowerText.includes('emotion')) tags.push('#feeling')
+    if (lowerText.includes('memory') || lowerText.includes('remember')) tags.push('#memory')
+    if (lowerText.includes('wisdom') || lowerText.includes('learn')) tags.push('#wisdom')
+    
+    if (tags.length === 0) tags.push('#thought', '#reflection')
+    
+    return tags
+  }
+
+  const handleRecordingClick = () => {
+    if (isRecording) {
+      stopRecording()
+    } else {
+      startRecording()
+    }
+  }
+
+  const toggleTextInput = () => {
+    setIsTextExpanded(!isTextExpanded)
+    if (!isTextExpanded) {
+      // Focus the textarea when expanding
+      setTimeout(() => {
+        const textarea = document.getElementById('textInput') as HTMLTextAreaElement
+        if (textarea) textarea.focus()
+      }, 100)
+    }
+  }
+
+  // Show loading while checking authentication
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-cream/80">Loading...</p>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <>
@@ -14,33 +248,97 @@ export default function Home() {
       </Head>
 
       <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
+        <button 
+          onClick={handleLogout}
+          className="fixed top-4 right-4 px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
+        >
+          Logout
+        </button>
+
         <div className="text-center max-w-md">
-          <h1 className="text-4xl font-light mb-8 text-cream">
+          <h1 className="text-4xl font-light mb-12 text-cream">
             The Breadcrumb Project
           </h1>
           
           <p className="text-lg mb-12 text-cream/80 leading-relaxed">
-            Leave a trace of your journey, one thought at a time.
+            A trail of wisdom for your kids to follow after you're gone.
           </p>
 
+          {/* Audio Recording Button */}
           <button
-            onClick={() => setIsRecording(!isRecording)}
+            onClick={handleRecordingClick}
+            disabled={isLoading}
             className={`
-              w-24 h-24 rounded-full border-2 transition-all duration-300
+              w-24 h-24 rounded-full border-2 transition-all duration-300 mb-6
               ${isRecording 
                 ? 'bg-red-600 border-red-400 animate-pulse' 
                 : 'bg-cream/10 border-cream/30 hover:bg-cream/20'
               }
+              ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
           >
             <div className="text-2xl">
-              {isRecording ? '⏹️' : '🎤'}
+              {isLoading ? '⏳' : isRecording ? '⏹️' : '🎤'}
             </div>
           </button>
 
-          <p className="mt-6 text-sm text-cream/60">
-            {isRecording ? 'Recording...' : 'Tap to record a breadcrumb'}
+          <p className="text-sm text-cream/60 mb-8">
+            {isLoading ? 'Processing...' : isRecording ? 'Recording... Tap to stop' : 'Tap to record a breadcrumb'}
           </p>
+
+          {/* Text Input Container */}
+          <div className="w-full mb-8">
+            {!isTextExpanded ? (
+              <button
+                onClick={toggleTextInput}
+                className="w-24 h-24 rounded-full border-2 border-cream/30 bg-cream/10 hover:bg-cream/20 transition-all duration-300 mx-auto flex items-center justify-center"
+              >
+                <div className="text-2xl">✏️</div>
+              </button>
+            ) : (
+              <form onSubmit={handleTextSubmit} className="w-full">
+                <textarea
+                  id="textInput"
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  placeholder="Write your thoughts..."
+                  className="w-full px-4 py-3 bg-cream/10 border border-cream/30 rounded-lg text-cream placeholder-cream/50 focus:outline-none focus:border-cream/50 resize-none"
+                  rows={4}
+                  autoFocus
+                />
+                <div className="flex gap-2 mt-3">
+                  <button
+                    type="submit"
+                    disabled={!textInput.trim()}
+                    className="flex-1 px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleTextInput}
+                    className="px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+            
+            {!isTextExpanded && (
+              <p className="text-sm text-cream/60 mt-3">
+                Tap to write a breadcrumb
+              </p>
+            )}
+          </div>
+
+          {/* Navigation to Breadcrumb Basket */}
+          <button
+            onClick={() => router.push('/basket')}
+            className="px-6 py-3 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
+          >
+            View Breadcrumb Basket
+          </button>
         </div>
       </main>
 
@@ -80,6 +378,14 @@ export default function Home() {
         
         .text-cream\/60 {
           color: rgba(245, 245, 220, 0.6);
+        }
+        
+        .text-cream\/50 {
+          color: rgba(245, 245, 220, 0.5);
+        }
+        
+        .placeholder-cream\/50::placeholder {
+          color: rgba(245, 245, 220, 0.5);
         }
       `}</style>
     </>
