@@ -1,80 +1,49 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-
-interface Breadcrumb {
-  id: string
-  date: string
-  time: string
-  transcription: string
-  tags: string[]
-  type: 'audio' | 'text'
-}
+import { AuthService } from '../lib/auth'
+import { DatabaseService } from '../lib/database'
+import { Breadcrumb } from '../lib/supabase'
 
 export default function Basket() {
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([])
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication
-    const authenticated = localStorage.getItem('authenticated')
-    const loginTime = localStorage.getItem('loginTime')
-    
-    if (!authenticated || !loginTime) {
-      router.push('/login')
-      return
-    }
-
-    // Check if login is still valid (24 hours)
-    const loginTimestamp = parseInt(loginTime)
-    const now = Date.now()
-    const twentyFourHours = 24 * 60 * 60 * 1000
-
-    if (now - loginTimestamp > twentyFourHours) {
-      // Session expired, clear and redirect to login
-      localStorage.removeItem('authenticated')
-      localStorage.removeItem('loginTime')
-      router.push('/login')
-      return
-    }
-
-    setIsAuthenticated(true)
-
-    // Load saved breadcrumbs from localStorage
-    const saved = localStorage.getItem('breadcrumbs')
-    if (saved) {
-      try {
-        const rawBreadcrumbs = JSON.parse(saved)
-        
-        // Handle both old and new data structures
-        const processedBreadcrumbs = rawBreadcrumbs.map((breadcrumb: any) => {
-          // If it's the old structure (has 'preview' and 'full' fields)
-          if (breadcrumb.preview && breadcrumb.full) {
-            return {
-              id: breadcrumb.id || Date.now().toString(),
-              date: breadcrumb.date || 'Unknown Date',
-              time: breadcrumb.time || 'Unknown Time',
-              transcription: breadcrumb.full || breadcrumb.preview,
-              tags: breadcrumb.tags || ['#legacy'],
-              type: 'text'
-            }
-          }
-          // If it's already the new structure
-          return breadcrumb
-        })
-        
-        setBreadcrumbs(processedBreadcrumbs)
-      } catch (error) {
-        console.error('Error loading breadcrumbs:', error)
+    // Check authentication with Supabase
+    const checkUser = async () => {
+      const { user } = await AuthService.getCurrentUser()
+      if (!user) {
+        router.push('/login')
+        return
       }
+      setUser(user)
+      
+      // Load breadcrumbs from database
+      const breadcrumbs = await DatabaseService.getBreadcrumbs(user.id)
+      setBreadcrumbs(breadcrumbs)
     }
+
+    checkUser()
+
+    // Listen for auth state changes
+    const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
+      if (!user) {
+        router.push('/login')
+      } else {
+        setUser(user)
+        // Reload breadcrumbs when user changes
+        DatabaseService.getBreadcrumbs(user.id).then(setBreadcrumbs)
+      }
+    })
+
+    return () => subscription?.unsubscribe()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem('authenticated')
-    localStorage.removeItem('loginTime')
+  const handleLogout = async () => {
+    await AuthService.signOut()
     router.push('/login')
   }
 
@@ -100,7 +69,7 @@ export default function Basket() {
   }
 
   // Show loading while checking authentication
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
         <div className="text-center">
@@ -158,7 +127,14 @@ export default function Basket() {
                 <div key={breadcrumb.id} className="bg-cream/5 border border-cream/10 rounded-lg p-6">
                   <div className="flex justify-between items-start mb-3">
                     <span className="text-sm text-cream/60">
-                      {breadcrumb.date} - {breadcrumb.time}
+                      {new Date(breadcrumb.created_at).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })} - {new Date(breadcrumb.created_at).toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                      })}
                     </span>
                     <div className="flex gap-2">
                       <span className="text-xs bg-cream/10 text-cream/80 px-2 py-1 rounded-full">
@@ -175,7 +151,7 @@ export default function Basket() {
                   <div className="text-cream leading-relaxed">
                     {expandedItems.has(breadcrumb.id) ? (
                       <div>
-                        <p className="whitespace-pre-wrap">{breadcrumb.transcription}</p>
+                        <p className="whitespace-pre-wrap">{breadcrumb.content}</p>
                         <button
                           onClick={() => toggleExpanded(breadcrumb.id)}
                           className="text-sm text-cream/60 hover:text-cream/80 mt-2 underline"
@@ -185,8 +161,8 @@ export default function Basket() {
                       </div>
                     ) : (
                       <div>
-                        <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.transcription)}</p>
-                        {isLongerThanPreview(breadcrumb.transcription) && (
+                        <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.content)}</p>
+                        {isLongerThanPreview(breadcrumb.content) && (
                           <button
                             onClick={() => toggleExpanded(breadcrumb.id)}
                             className="text-sm text-cream/60 hover:text-cream/80 mt-2 underline"

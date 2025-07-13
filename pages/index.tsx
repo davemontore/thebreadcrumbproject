@@ -1,44 +1,45 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import { AuthService } from '../lib/auth'
+import { DatabaseService } from '../lib/database'
+import { supabase } from '../lib/supabase'
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const [textInput, setTextInput] = useState('')
   const [isTextExpanded, setIsTextExpanded] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication
-    const authenticated = localStorage.getItem('authenticated')
-    const loginTime = localStorage.getItem('loginTime')
-    
-    if (!authenticated || !loginTime) {
-      router.push('/login')
-      return
+    // Check authentication with Supabase
+    const checkUser = async () => {
+      const { user } = await AuthService.getCurrentUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+      setUser(user)
     }
 
-    // Check if login is still valid (24 hours)
-    const loginTimestamp = parseInt(loginTime)
-    const now = Date.now()
-    const twentyFourHours = 24 * 60 * 60 * 1000
+    checkUser()
 
-    if (now - loginTimestamp > twentyFourHours) {
-      // Session expired, clear and redirect to login
-      localStorage.removeItem('authenticated')
-      localStorage.removeItem('loginTime')
-      router.push('/login')
-      return
-    }
+    // Listen for auth state changes
+    const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
+      if (!user) {
+        router.push('/login')
+      } else {
+        setUser(user)
+      }
+    })
 
-    setIsAuthenticated(true)
+    return () => subscription?.unsubscribe()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem('authenticated')
-    localStorage.removeItem('loginTime')
+  const handleLogout = async () => {
+    await AuthService.signOut()
     router.push('/login')
   }
 
@@ -156,38 +157,32 @@ export default function Home() {
     }
   }
 
-  const handleTextSubmit = (e: React.FormEvent) => {
+  const handleTextSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!textInput.trim()) return
+    if (!textInput.trim() || !user) return
 
-    const now = new Date()
-    const newBreadcrumb = {
-      id: Date.now().toString(),
-      date: now.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      time: now.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit' 
-      }),
-      transcription: textInput.trim(),
-      tags: generateTags(textInput),
-      type: 'text'
+    setIsLoading(true)
+    
+    try {
+      const tags = generateTags(textInput)
+      const breadcrumb = await DatabaseService.createBreadcrumb(
+        user.id,
+        textInput.trim(),
+        tags,
+        'text'
+      )
+      
+      if (breadcrumb) {
+        setTextInput('')
+        setIsTextExpanded(false)
+        // No confirmation dialog - just silently save for maximum elegance
+      }
+    } catch (error) {
+      console.error('Error saving breadcrumb:', error)
+    } finally {
+      setIsLoading(false)
     }
-
-    // Load existing breadcrumbs, add new one, save back
-    const saved = localStorage.getItem('breadcrumbs')
-    const existingBreadcrumbs = saved ? JSON.parse(saved) : []
-    const updatedBreadcrumbs = [newBreadcrumb, ...existingBreadcrumbs]
-    localStorage.setItem('breadcrumbs', JSON.stringify(updatedBreadcrumbs))
-    
-    setTextInput('')
-    setIsTextExpanded(false)
-    
-    // No confirmation dialog - just silently save for maximum elegance
   }
 
   const generateTags = (text: string): string[] => {
@@ -226,7 +221,7 @@ export default function Home() {
   }
 
   // Show loading while checking authentication
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
         <div className="text-center">
