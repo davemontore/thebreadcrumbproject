@@ -159,38 +159,100 @@
             display: none;
         }
 
-        .hidden {
-            display: none;
+        .api-key-input {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: rgba(245, 245, 220, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(245, 245, 220, 0.2);
+        }
+
+        .api-key-input input {
+            width: 100%;
+            padding: 8px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 4px;
+            color: #f5f5dc;
+            font-size: 0.9rem;
+        }
+
+        .api-key-input input::placeholder {
+            color: rgba(245, 245, 220, 0.5);
+        }
+
+        .api-key-input button {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 4px;
+            color: #f5f5dc;
+            cursor: pointer;
+        }
+
+        .api-key-input button:hover {
+            background-color: rgba(245, 245, 220, 0.2);
         }
     </style>
 </head>
 <body>
-            <div class="container">
-            <h1>The Breadcrumb Project</h1>
-            <p class="subtitle">A trail of wisdom for your kids to follow after you're gone.</p>
-            
-            <button class="record-button" id="recordButton">
-                🎤
-            </button>
-            
-            <p class="status" id="status">Tap to record a breadcrumb</p>
+    <div class="container">
+        <h1>The Breadcrumb Project</h1>
+        <p class="subtitle">A trail of wisdom for your kids to follow after you're gone.</p>
+        
+        <button class="record-button" id="recordButton">
+            🎤
+        </button>
+        
+        <p class="status" id="status">Tap to record a breadcrumb</p>
 
-            <div class="breadbasket" id="breadbasket">
-                <h2 style="margin-bottom: 2rem; font-weight: 300; color: rgba(245, 245, 220, 0.8); text-align: center;">Breadbasket</h2>
-            </div>
+        <div class="api-key-input" id="apiKeyInput">
+            <p style="margin-bottom: 8px; font-size: 0.9rem;">Enter your OpenAI API key to enable transcription:</p>
+            <input type="password" id="apiKeyField" placeholder="sk-..." />
+            <button onclick="saveApiKey()">Save Key</button>
         </div>
 
-    <script src="config.js"></script>
+        <div class="breadbasket" id="breadbasket">
+            <h2 style="margin-bottom: 2rem; font-weight: 300; color: rgba(245, 245, 220, 0.8); text-align: center;">Breadbasket</h2>
+        </div>
+    </div>
+
     <script>
         const recordButton = document.getElementById('recordButton');
         const status = document.getElementById('status');
         const breadbasket = document.getElementById('breadbasket');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiKeyField = document.getElementById('apiKeyField');
         
         let isRecording = false;
         let mediaRecorder = null;
         let audioChunks = [];
+        let openaiApiKey = localStorage.getItem('openaiApiKey');
+
+        // Check if API key is already saved
+        if (openaiApiKey) {
+            apiKeyInput.style.display = 'none';
+        }
+
+        function saveApiKey() {
+            const key = apiKeyField.value.trim();
+            if (key && key.startsWith('sk-')) {
+                openaiApiKey = key;
+                localStorage.setItem('openaiApiKey', key);
+                apiKeyInput.style.display = 'none';
+                status.textContent = 'API key saved! Tap to record a breadcrumb';
+            } else {
+                alert('Please enter a valid OpenAI API key (starts with sk-)');
+            }
+        }
 
         recordButton.addEventListener('click', async () => {
+            if (!openaiApiKey) {
+                alert('Please enter your OpenAI API key first');
+                return;
+            }
+
             if (!isRecording) {
                 // Start recording
                 try {
@@ -203,7 +265,6 @@
                     
                     mediaRecorder.onstop = () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        const audioUrl = URL.createObjectURL(audioBlob);
                         
                         // Create a new breadcrumb entry
                         const now = new Date();
@@ -223,17 +284,15 @@
                             <div class="breadcrumb-header">
                                 <div class="breadcrumb-date">${dateString} - ${timeString}</div>
                                 <div class="breadcrumb-tags">
-                                    <span class="tag">#thought</span>
-                                    <span class="tag">#new</span>
+                                    <span class="tag">#processing</span>
                                 </div>
                             </div>
                             <div class="breadcrumb-preview">
-                                <p>🎵 Audio recorded successfully! (${Math.round(audioBlob.size / 1024)}KB)</p>
+                                <p>🎵 Transcribing audio...</p>
                                 <button class="see-more-btn">See More</button>
                             </div>
                             <div class="breadcrumb-full hidden">
-                                <p>Your audio has been captured and is ready for transcription. Once we connect to OpenAI, this will be automatically converted to beautifully formatted text with intelligent tagging.</p>
-                                <p>File size: ${Math.round(audioBlob.size / 1024)}KB | Duration: ~${Math.round(audioBlob.size / 16000)} seconds</p>
+                                <p>Processing your audio with OpenAI...</p>
                                 <button class="see-less-btn">See Less</button>
                             </div>
                         `;
@@ -295,11 +354,6 @@
         // Function to transcribe audio using OpenAI
         async function transcribeAudio(audioBlob, breadcrumbElement) {
             try {
-                // Check if API key is set
-                if (config.openaiApiKey === 'YOUR_OPENAI_API_KEY_HERE') {
-                    throw new Error('Please set your OpenAI API key in config.js');
-                }
-
                 // Update status
                 breadcrumbElement.querySelector('.breadcrumb-preview p').textContent = '🎵 Transcribing audio...';
                 
@@ -310,10 +364,10 @@
                 formData.append('response_format', 'json');
 
                 // Send to OpenAI
-                const response = await fetch(config.openaiEndpoint, {
+                const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${config.openaiApiKey}`
+                        'Authorization': `Bearer ${openaiApiKey}`
                     },
                     body: formData
                 });
@@ -347,6 +401,7 @@
             if (text.toLowerCase().includes('idea') || text.toLowerCase().includes('think')) tags.push('#idea');
             if (text.toLowerCase().includes('feeling') || text.toLowerCase().includes('emotion')) tags.push('#feeling');
             if (text.toLowerCase().includes('memory') || text.toLowerCase().includes('remember')) tags.push('#memory');
+            if (text.toLowerCase().includes('wisdom') || text.toLowerCase().includes('learn')) tags.push('#wisdom');
             
             // Default tags
             if (tags.length === 0) tags.push('#thought', '#reflection');
