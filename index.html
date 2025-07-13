@@ -282,10 +282,57 @@
             outline: none !important;
         }
 
-        .logout-btn {
+        .basket-btn {
             position: fixed;
             top: 20px;
             right: 20px;
+            padding: 8px 12px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 6px;
+            color: #f5f5dc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            line-height: 1.2;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .basket-btn:hover {
+            background-color: rgba(245, 245, 220, 0.2);
+        }
+
+        .text-input-container {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .text-input-container.show {
+            display: block;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(245, 245, 220, 0.1);
+            border: 1px solid rgba(245, 245, 220, 0.3);
+            border-radius: 8px;
+            color: #f5f5dc;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .text-input::placeholder {
+            color: rgba(245, 245, 220, 0.5);
+        }
+
+        .submit-btn {
             padding: 8px 16px;
             background-color: rgba(245, 245, 220, 0.1);
             border: 1px solid rgba(245, 245, 220, 0.3);
@@ -294,10 +341,45 @@
             cursor: pointer;
             font-size: 0.9rem;
             transition: all 0.3s ease;
+            text-transform: lowercase;
         }
 
-        .logout-btn:hover {
+        .submit-btn:hover {
             background-color: rgba(245, 245, 220, 0.2);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .max-w-md {
+            max-width: 28rem;
+        }
+
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .gap-8 {
+            gap: 2rem;
+        }
+
+        .mb-8 {
+            margin-bottom: 2rem;
         }
     </style>
 </head>
@@ -313,25 +395,41 @@
 
     <!-- Main App (hidden until authenticated) -->
     <div class="container" id="mainContainer">
-        <button class="logout-btn" onclick="logout()">Logout</button>
+        <button class="basket-btn" onclick="viewBasket()">Breadcrumb<br>Basket</button>
         
         <h1>The Breadcrumb Project</h1>
         <p class="subtitle">A trail of wisdom for your kids to follow after you're gone.</p>
         
-        <button class="record-button" id="recordButton">
-            🎤
-        </button>
-        
-        <p class="status" id="status">Tap to record a breadcrumb</p>
+        <div class="text-center max-w-md mx-auto">
+            <div class="flex justify-center gap-8 mb-8">
+                <button class="record-button" id="recordButton">
+                    🎤
+                </button>
+                
+                <button class="record-button" id="writeButton" onclick="toggleTextInput()">
+                    ✍️
+                </button>
+            </div>
+
+            <div class="text-input-container" id="textInputContainer">
+                <textarea 
+                    class="text-input" 
+                    id="textInput" 
+                    placeholder="write your thoughts..."
+                ></textarea>
+                <button 
+                    class="submit-btn" 
+                    id="submitBtn" 
+                    onclick="submitTextEntry()" 
+                    disabled
+                >submit</button>
+            </div>
+        </div>
 
         <div class="api-key-input" id="apiKeyInput">
             <p style="margin-bottom: 8px; font-size: 0.9rem;">Enter your OpenAI API key to enable transcription:</p>
             <input type="password" id="apiKeyField" placeholder="sk-..." />
             <button onclick="saveApiKey()">Save Key</button>
-        </div>
-
-        <div class="breadbasket" id="breadbasket">
-            <h2 style="margin-bottom: 2rem; font-weight: 300; color: rgba(245, 245, 220, 0.8); text-align: center;">Breadbasket</h2>
         </div>
     </div>
 
@@ -367,6 +465,79 @@
             showLoginScreen();
         }
 
+        function viewBasket() {
+            // For now, just show an alert. In a full app, this would navigate to a basket page
+            alert('Breadcrumb Basket feature coming soon!');
+        }
+
+        function toggleTextInput() {
+            const container = document.getElementById('textInputContainer');
+            const textInput = document.getElementById('textInput');
+            
+            if (container.classList.contains('show')) {
+                // Hide text input
+                container.classList.remove('show');
+                textInput.value = '';
+                document.getElementById('submitBtn').disabled = true;
+            } else {
+                // Show text input
+                container.classList.add('show');
+                textInput.focus();
+            }
+        }
+
+        function submitTextEntry() {
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+            
+            if (!text) return;
+
+            // Create new breadcrumb entry
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit' 
+            });
+            
+            const breadcrumb = document.createElement('div');
+            breadcrumb.className = 'breadcrumb';
+            breadcrumb.innerHTML = `
+                <div class="breadcrumb-header">
+                    <div class="breadcrumb-date">${dateString} - ${timeString}</div>
+                    <div class="breadcrumb-tags">
+                        <span class="tag">#text</span>
+                    </div>
+                </div>
+                <div class="breadcrumb-preview">
+                    <p>${text}</p>
+                </div>
+            `;
+            
+            // Save to localStorage
+            const saved = localStorage.getItem('breadcrumbs');
+            const existingBreadcrumbs = saved ? JSON.parse(saved) : [];
+            const newBreadcrumb = {
+                date: dateString + ' - ' + timeString,
+                preview: text,
+                full: text,
+                tags: ['#text', '#thought']
+            };
+            const updatedBreadcrumbs = [newBreadcrumb, ...existingBreadcrumbs];
+            localStorage.setItem('breadcrumbs', JSON.stringify(updatedBreadcrumbs));
+            
+            // Clear and hide text input
+            textInput.value = '';
+            document.getElementById('textInputContainer').classList.remove('show');
+            document.getElementById('submitBtn').disabled = true;
+            
+            alert('Text entry saved! Check your Breadcrumb Basket to view it.');
+        }
+
         function showMainApp() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
@@ -388,6 +559,18 @@
         document.getElementById('passwordInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 login();
+            }
+        });
+
+        // Handle text input changes to enable/disable submit button
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('textInput');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (textInput && submitBtn) {
+                textInput.addEventListener('input', function() {
+                    submitBtn.disabled = !this.value.trim();
+                });
             }
         });
 
