@@ -110,7 +110,7 @@ export default function Basket() {
                 onClick={() => router.push('/')}
                 className="px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
               >
-                Add New Entry
+                🏠
               </button>
               <button
                 onClick={handleLogout}

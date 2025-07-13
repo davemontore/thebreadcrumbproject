@@ -292,11 +292,14 @@
             border-radius: 6px;
             color: #f5f5dc;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 1.5rem;
             transition: all 0.3s ease;
-            line-height: 1.2;
             text-align: center;
-            min-width: 60px;
+            min-width: 50px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .basket-btn:hover {
@@ -395,7 +398,7 @@
 
     <!-- Main App (hidden until authenticated) -->
     <div class="container" id="mainContainer">
-        <button class="basket-btn" onclick="viewBasket()">Breadcrumb<br>Basket</button>
+        <button class="basket-btn" onclick="viewBasket()">🍞</button>
         
         <h1>The Breadcrumb Project</h1>
         <p class="subtitle">A trail of wisdom for your kids to follow after you're gone.</p>
