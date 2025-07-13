@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { AuthService } from '../lib/auth'
+import { createClient } from '@supabase/supabase-js'
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -30,20 +35,28 @@ export default function Login() {
           return
         }
         
-        const { user, error } = await AuthService.signUp(email, password)
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        })
+        
         if (error) {
           setError(error.message || 'Account creation failed')
           setPassword('')
-        } else if (user) {
+        } else if (data.user) {
           router.push('/')
         }
       } else {
         // Regular sign in
-        const { user, error } = await AuthService.signIn(email, password)
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        
         if (error) {
           setError(error.message || 'Sign in failed')
           setPassword('')
-        } else if (user) {
+        } else if (data.user) {
           router.push('/')
         }
       }

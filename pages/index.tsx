@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { AuthService } from '../lib/auth'
-import { DatabaseService } from '../lib/database'
-import { supabase } from '../lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false)
@@ -14,9 +17,9 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication with Supabase
+    // Simple auth check
     const checkUser = async () => {
-      const { user } = await AuthService.getCurrentUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
         return
@@ -26,12 +29,12 @@ export default function Home() {
 
     checkUser()
 
-    // Listen for auth state changes
-    const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
-      if (!user) {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session?.user) {
         router.push('/login')
       } else {
-        setUser(user)
+        setUser(session.user)
       }
     })
 
@@ -39,7 +42,7 @@ export default function Home() {
   }, [router])
 
   const handleLogout = async () => {
-    await AuthService.signOut()
+    await supabase.auth.signOut()
     router.push('/login')
   }
 
@@ -61,8 +64,6 @@ export default function Home() {
 
       mediaRecorder.start()
       setIsRecording(true)
-
-      // Store mediaRecorder reference for stopping
       ;(window as any).mediaRecorder = mediaRecorder
     } catch (error) {
       console.error('Error accessing microphone:', error)
@@ -82,7 +83,6 @@ export default function Home() {
     setIsLoading(true)
     
     try {
-      // Get API key from localStorage (stored by user in browser)
       const openaiApiKey = localStorage.getItem('openaiApiKey')
       
       if (!openaiApiKey) {
@@ -91,23 +91,18 @@ export default function Home() {
         return
       }
 
-      // Convert blob to base64
       const reader = new FileReader()
       reader.readAsDataURL(audioBlob)
       
       reader.onload = async () => {
         const base64Audio = reader.result as string
-        
-        // Extract base64 data (remove data:audio/wav;base64, prefix)
         const base64Data = base64Audio.split(',')[1]
         
-        // Create form data for OpenAI
         const formData = new FormData()
         formData.append('file', new Blob([Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))], { type: 'audio/wav' }), 'recording.wav')
         formData.append('model', 'whisper-1')
         formData.append('response_format', 'json')
 
-        // Send to OpenAI directly
         const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
           method: 'POST',
           headers: {
@@ -123,18 +118,9 @@ export default function Home() {
 
         const result = await response.json()
         
-        // Save to Supabase database
-        if (user) {
-          const tags = generateTags(result.text)
-          await DatabaseService.createBreadcrumb(
-            user.id,
-            result.text,
-            tags,
-            'audio'
-          )
-        }
-        
-        // No confirmation dialog - just silently save for maximum elegance
+        // Save to database
+        const tags = generateTags(result.text)
+        await saveBreadcrumb(result.text, tags, 'audio')
       }
     } catch (error) {
       console.error('Transcription error:', error)
@@ -144,27 +130,36 @@ export default function Home() {
     }
   }
 
+  const saveBreadcrumb = async (content: string, tags: string[], type: 'audio' | 'text') => {
+    try {
+      const { error } = await supabase
+        .from('breadcrumbs')
+        .insert({
+          content,
+          tags,
+          type,
+          user_id: user?.id || 'anonymous'
+        })
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error saving breadcrumb:', error)
+      alert('Failed to save breadcrumb')
+    }
+  }
+
   const handleTextSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!textInput.trim() || !user) return
+    if (!textInput.trim()) return
 
     setIsLoading(true)
     
     try {
       const tags = generateTags(textInput)
-      const breadcrumb = await DatabaseService.createBreadcrumb(
-        user.id,
-        textInput.trim(),
-        tags,
-        'text'
-      )
-      
-      if (breadcrumb) {
-        setTextInput('')
-        setIsTextExpanded(false)
-        // No confirmation dialog - just silently save for maximum elegance
-      }
+      await saveBreadcrumb(textInput.trim(), tags, 'text')
+      setTextInput('')
+      setIsTextExpanded(false)
     } catch (error) {
       console.error('Error saving breadcrumb:', error)
     } finally {
@@ -199,7 +194,6 @@ export default function Home() {
   const toggleTextInput = () => {
     setIsTextExpanded(!isTextExpanded)
     if (!isTextExpanded) {
-      // Focus the textarea when expanding
       setTimeout(() => {
         const textarea = document.getElementById('textInput') as HTMLTextAreaElement
         if (textarea) textarea.focus()
@@ -224,7 +218,6 @@ export default function Home() {
         <title>The Breadcrumb Project</title>
         <meta name="description" content="Record your thoughts and memories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
