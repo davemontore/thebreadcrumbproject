@@ -41,10 +41,7 @@ export default function Basket() {
     checkUser()
   }, [router])
 
-  const handleLogout = async () => {
-    SimpleAuth.logout()
-    router.push('/login')
-  }
+
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems)
@@ -90,22 +87,18 @@ export default function Basket() {
       <main className="min-h-screen bg-black text-cream p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-light text-cream">Breadcrumb Basket</h1>
-            <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
+            <div className="text-center mb-6 sm:mb-0">
+              <h1 className="text-3xl sm:text-4xl font-light text-cream">Breadcrumb Basket</h1>
+            </div>
+            <div className="flex justify-center sm:justify-end">
               <button
                 onClick={() => router.push('/')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
-              >
-                Logout
               </button>
             </div>
           </div>
@@ -114,13 +107,7 @@ export default function Basket() {
           {breadcrumbs.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-cream-60 text-lg mb-4">No breadcrumbs yet.</p>
-              <p className="text-cream-40 mb-6">Start recording or writing to leave your first trace.</p>
-              <button
-                onClick={() => router.push('/')}
-                className="px-6 py-3 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
-              >
-                Create Your First Breadcrumb
-              </button>
+              <p className="text-cream-40">Start recording or writing to leave your first trace.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -139,7 +126,15 @@ export default function Basket() {
                     </span>
                     <div className="flex gap-2">
                       <span className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
-                        {breadcrumb.type === 'audio' ? '🎤' : '✏️'}
+                        {breadcrumb.type === 'audio' ? (
+                          <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 15c1.66 0 3-1.34 3-3V7a3 3 0 1 0-6 0v5c0 1.66 1.34 3 3 3zm5-3a1 1 0 1 1 2 0c0 3.07-2.13 5.64-5 6.32V21h3a1 1 0 1 1 0 2H7a1 1 0 1 1 0-2h3v-2.68c-2.87-.68-5-3.25-5-6.32a1 1 0 1 1 2 0c0 2.76 2.24 5 5 5s5-2.24 5-5z"/>
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M16.24 3.56c-1.13-1.13-2.95-1.13-4.08 0l-7.6 7.6a2.88 2.88 0 0 0-.84 2.04c0 .77.3 1.5.84 2.04l2.12 2.12c.54.54 1.27.84 2.04.84.77 0 1.5-.3 2.04-.84l7.6-7.6c1.13-1.13 1.13-2.95 0-4.08zm-9.19 9.19l4.24 4.24M14.12 7.88l2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
                       </span>
                       {breadcrumb.tags.map((tag, index) => (
                         <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">

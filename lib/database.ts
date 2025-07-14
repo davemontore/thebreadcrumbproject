@@ -6,6 +6,8 @@ export interface JournalEntry {
   content: string
   created_at: string
   updated_at: string
+  type?: 'audio' | 'text'
+  tags?: string[]
 }
 
 // Initialize Supabase client
@@ -42,7 +44,7 @@ export class JournalService {
   }
 
   // Create a new journal entry
-  static async createEntry(content: string): Promise<JournalEntry | null> {
+  static async createEntry(content: string, type: 'audio' | 'text' = 'text', tags: string[] = []): Promise<JournalEntry | null> {
     if (!supabase) {
       console.warn('Supabase not configured, cannot create entry')
       return null
@@ -51,7 +53,7 @@ export class JournalService {
     try {
       const { data, error } = await supabase
         .from('journal_entries')
-        .insert({ content })
+        .insert({ content, type, tags })
         .select()
         .single()
 

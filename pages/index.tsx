@@ -120,24 +120,83 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(false)
   const [showTextInput, setShowTextInput] = useState(false)
   const [textEntry, setTextEntry] = useState('')
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([])
 
-  const startRecording = () => {
-    setIsRecording(true)
-    setIsPaused(false)
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioChunks(prev => [...prev, event.data])
+        }
+      }
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+        
+        // Send to API for transcription
+        const formData = new FormData()
+        formData.append('audio', audioBlob)
+
+        try {
+          const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (response.ok) {
+            const { transcription, tags } = await response.json()
+            
+            // Save to database
+            const result = await JournalService.createEntry(transcription, 'audio', tags)
+            if (result) {
+              // Refresh entries
+              loadEntries()
+            }
+          } else {
+            console.error('Transcription failed')
+          }
+        } catch (error) {
+          console.error('Error processing audio:', error)
+        }
+
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop())
+        setAudioChunks([])
+      }
+
+      setMediaRecorder(recorder)
+      recorder.start()
+      setIsRecording(true)
+      setIsPaused(false)
+    } catch (error) {
+      console.error('Error starting recording:', error)
+    }
   }
 
   const pauseRecording = () => {
-    setIsPaused(true)
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause()
+      setIsPaused(true)
+    }
   }
 
   const resumeRecording = () => {
-    setIsPaused(false)
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume()
+      setIsPaused(false)
+    }
   }
 
   const stopRecording = () => {
-    setIsRecording(false)
-    setIsPaused(false)
-    // TODO: Save audio recording
+    if (mediaRecorder) {
+      mediaRecorder.stop()
+      setIsRecording(false)
+      setIsPaused(false)
+    }
   }
 
   const startTextEntry = () => {
@@ -149,10 +208,26 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      const result = await JournalService.createEntry(textEntry.trim())
+      // Generate tags for text entry
+      const response = await fetch('/api/generate-tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: textEntry.trim() }),
+      })
+
+      let tags: string[] = []
+      if (response.ok) {
+        const result = await response.json()
+        tags = result.tags
+      }
+
+      const result = await JournalService.createEntry(textEntry.trim(), 'text', tags)
       if (result) {
         setTextEntry('')
         setShowTextInput(false)
+        loadEntries()
       }
     } catch (error) {
       console.error('Error creating entry:', error)
