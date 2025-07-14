@@ -119,134 +119,174 @@ export default function Home() {
     }
   }
 
+  const [isRecording, setIsRecording] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [showTextInput, setShowTextInput] = useState(false)
+  const [textEntry, setTextEntry] = useState('')
+
+  const startRecording = () => {
+    setIsRecording(true)
+    setIsPaused(false)
+  }
+
+  const pauseRecording = () => {
+    setIsPaused(true)
+  }
+
+  const resumeRecording = () => {
+    setIsPaused(false)
+  }
+
+  const stopRecording = () => {
+    setIsRecording(false)
+    setIsPaused(false)
+    // TODO: Save audio recording
+  }
+
+  const startTextEntry = () => {
+    setShowTextInput(true)
+  }
+
+  const submitTextEntry = async () => {
+    if (!textEntry.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      const result = await JournalService.createEntry(textEntry.trim())
+      if (result) {
+        setTextEntry('')
+        setShowTextInput(false)
+      }
+    } catch (error) {
+      console.error('Error creating entry:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const cancelTextEntry = () => {
+    setTextEntry('')
+    setShowTextInput(false)
+  }
+
   return (
     <>
       <Head>
-        <title>Simple Journal</title>
-        <meta name="description" content="A simple, elegant journaling app" />
+        <title>Create Breadcrumb - The Breadcrumb Project</title>
+        <meta name="description" content="Record your thoughts and memories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#f8fafc" />
+        <meta name="theme-color" content="#000000" />
       </Head>
 
-      <div className="min-h-screen bg-black">
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm border-b border-cream-30">
-          <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-cream">
-              Journal
-            </h1>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-cream-60 hover:text-cream transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </header>
-
-        <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-          {/* Input Section */}
-          <div className="bg-cream-5 rounded-2xl shadow-sm border border-cream-10 p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <textarea
-                value={newEntry}
-                onChange={(e) => setNewEntry(e.target.value)}
-                placeholder="What's on your mind?"
-                className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream"
-                rows={4}
-                disabled={isSubmitting}
-              />
-              <div className="flex justify-between items-center">
-                <button
-                  type="submit"
-                  disabled={!newEntry.trim() || isSubmitting}
-                  className="px-6 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Entry'}
-                </button>
-                <span className="text-sm text-cream-60">
-                  {entries.length} entries
-                </span>
-              </div>
-            </form>
+      <main className="min-h-screen bg-black text-cream p-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-12">
+            <h1 className="text-4xl font-light text-cream">Create Breadcrumb</h1>
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push('/basket')}
+                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
+              >
+                🍞
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
-          {/* Entries List */}
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cream-60 mx-auto"></div>
-                <p className="text-cream-60 mt-2">Loading entries...</p>
-              </div>
-            ) : entries.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-4xl mb-4">📝</div>
-                <p className="text-cream-60">No entries yet. Start writing!</p>
+          {/* Audio Recording Section */}
+          <div className="flex flex-col items-center mb-16">
+            {!isRecording ? (
+              <div className="group cursor-pointer" onClick={startRecording}>
+                <div className="w-48 h-48 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                  <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                </div>
+                <p className="text-center mt-4 text-cream-80 text-lg">Tap to Record Audio</p>
               </div>
             ) : (
-              entries.map((entry) => (
-                <div key={entry.id} className="bg-cream-5 rounded-2xl shadow-sm border border-cream-10 p-6">
-                  {editingId === entry.id ? (
-                    <div className="space-y-4">
-                      <textarea
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        className="w-full p-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows={4}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(entry.id)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelEditing}
-                          className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-start mb-3">
-                        <span className="text-sm text-slate-500">
-                          {formatDate(entry.created_at)}
-                        </span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => startEditing(entry)}
-                            className="text-cream-60 hover:text-cream-80 transition-colors p-1"
-                            title="Edit entry"
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDelete(entry.id)}
-                            className="text-cream-60 hover:text-red-400 transition-colors p-1"
-                            title="Delete entry"
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">
-                        {entry.content}
-                      </p>
-                    </>
-                  )}
+              <div className="text-center">
+                <div className="w-48 h-48 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
                 </div>
-              ))
+                <p className="text-cream-80 text-lg mb-4">
+                  {isPaused ? 'Recording Paused' : 'Recording...'}
+                </p>
+                <div className="flex gap-4 justify-center">
+                  {isPaused ? (
+                    <button
+                      onClick={resumeRecording}
+                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                    >
+                      Resume
+                    </button>
+                  ) : (
+                    <button
+                      onClick={pauseRecording}
+                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                    >
+                      Pause
+                    </button>
+                  )}
+                  <button
+                    onClick={stopRecording}
+                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
             )}
           </div>
-        </main>
-      </div>
+
+          {/* Text Entry Section */}
+          <div className="flex flex-col items-center">
+            {!showTextInput ? (
+              <div className="group cursor-pointer" onClick={startTextEntry}>
+                <div className="w-48 h-48 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                  <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </div>
+                <p className="text-center mt-4 text-cream-80 text-lg">Tap to Write Text</p>
+              </div>
+            ) : (
+              <div className="w-full max-w-2xl">
+                <textarea
+                  value={textEntry}
+                  onChange={(e) => setTextEntry(e.target.value)}
+                  placeholder="What's on your mind?"
+                  className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
+                  rows={6}
+                  autoFocus
+                />
+                <div className="flex gap-4 justify-center">
+                  <button
+                    onClick={submitTextEntry}
+                    disabled={!textEntry.trim() || isSubmitting}
+                    className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Submit'}
+                  </button>
+                  <button
+                    onClick={cancelTextEntry}
+                    className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
     </>
   )
 } 
