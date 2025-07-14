@@ -5,38 +5,23 @@ import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
 // Remove Heroicons import - using Unicode emojis instead
 
-// Unicode Microphone Emoji Component with Outline Effect
+// Unicode Microphone Emoji Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
-  <span className={className} style={{ 
-    fontSize: 'inherit', 
-    WebkitTextStroke: '2px #f5f5dc',
-    color: 'transparent',
-    filter: 'drop-shadow(0 0 1px rgba(245, 245, 220, 0.3))'
-  }}>
+  <span className={className} style={{ fontSize: 'inherit' }}>
     🎤
   </span>
 )
 
-// Unicode Writing Hand Emoji Component with Outline Effect
+// Unicode Writing Hand Emoji Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
-  <span className={className} style={{ 
-    fontSize: 'inherit', 
-    WebkitTextStroke: '2px #f5f5dc',
-    color: 'transparent',
-    filter: 'drop-shadow(0 0 1px rgba(245, 245, 220, 0.3))'
-  }}>
+  <span className={className} style={{ fontSize: 'inherit' }}>
     ✍️
   </span>
 )
 
-// Unicode Bread Emoji Component with Outline Effect
+// Unicode Bread Emoji Component
 const ElegantBreadIcon = ({ className }: { className?: string }) => (
-  <span className={className} style={{ 
-    fontSize: 'inherit', 
-    WebkitTextStroke: '1px #f5f5dc',
-    color: 'transparent',
-    filter: 'drop-shadow(0 0 1px rgba(245, 245, 220, 0.3))'
-  }}>
+  <span className={className} style={{ fontSize: 'inherit' }}>
     🍞
   </span>
 )
@@ -305,117 +290,115 @@ export default function Home() {
       </Head>
 
       <main className="min-h-screen bg-black text-cream p-4">
-        <div className="max-w-4xl mx-auto h-screen flex flex-col">
-          {/* Header with Bread Icon */}
-          <div className="flex justify-end w-full mb-4">
-            <button
-              onClick={() => router.push('/basket')}
-              className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
-            >
-              <ElegantBreadIcon className="text-2xl text-cream"/>
-            </button>
-          </div>
-
-          {/* Tagline - Fixed at top */}
-          <div className="text-center mb-8">
-            <p className="text-xl sm:text-2xl font-light text-cream-80" style={{ fontFamily: 'Caveat, cursive' }}>
-              A trail of wisdom for your kids to follow after you're gone
-            </p>
-          </div>
-
-          {/* Title - Centered between tagline and bread icon */}
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight">
-                <span className="block">The Breadcrumb</span>
-                <span className="block">Project</span>
-              </h1>
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col items-center">
+            <div className="flex justify-end w-full mb-4">
+              <button
+                onClick={() => router.push('/basket')}
+                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
+              >
+                <ElegantBreadIcon className="text-2xl text-cream"/>
+              </button>
             </div>
           </div>
 
-          {/* Circles Section - Evenly spaced to bottom */}
-          <div className="flex-1 flex flex-col items-center justify-center space-y-12">
+          {/* Main Content - Title and Circles as a Unit, Vertically Centered */}
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
+            {/* Title and Circles Unit */}
+            <div className="flex flex-col items-center space-y-12">
+              {/* Title */}
+              <div className="text-center">
+                <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight">
+                  <span className="block">The Breadcrumb</span>
+                  <span className="block">Project</span>
+                </h1>
+                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-2" style={{ fontFamily: 'Caveat, cursive' }}>
+                  A trail of wisdom for your kids to follow after you're gone
+                </p>
+              </div>
 
-            {/* Audio Recording Section */}
-            <div className="flex flex-col items-center">
-              {!isRecording ? (
-                <div className="group cursor-pointer" onClick={startRecording}>
-                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Unicode Microphone Emoji */}
-                    <ModernMicrophoneIcon className="text-9xl text-cream group-hover:scale-110 transition-transform duration-300"/>
+              {/* Audio Recording Section */}
+              <div className="flex flex-col items-center">
+                {!isRecording ? (
+                  <div className="group cursor-pointer" onClick={startRecording}>
+                    <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                      {/* Unicode Microphone Emoji */}
+                      <ModernMicrophoneIcon className="text-9xl text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
-                  </div>
-                  <p className="text-cream-80 text-lg mb-4">
-                    {isPaused ? 'Recording Paused' : 'Recording...'}
-                  </p>
-                  <div className="flex gap-4 justify-center">
-                    {isPaused ? (
+                ) : (
+                  <div className="text-center">
+                    <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <p className="text-cream-80 text-lg mb-4">
+                      {isPaused ? 'Recording Paused' : 'Recording...'}
+                    </p>
+                    <div className="flex gap-4 justify-center">
+                      {isPaused ? (
+                        <button
+                          onClick={resumeRecording}
+                          className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                        >
+                          Resume
+                        </button>
+                      ) : (
+                        <button
+                          onClick={pauseRecording}
+                          className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                        >
+                          Pause
+                        </button>
+                      )}
                       <button
-                        onClick={resumeRecording}
-                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                        onClick={stopRecording}
+                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                       >
-                        Resume
+                        Submit
                       </button>
-                    ) : (
-                      <button
-                        onClick={pauseRecording}
-                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
-                      >
-                        Pause
-                      </button>
-                    )}
-                    <button
-                      onClick={stopRecording}
-                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      Submit
-                    </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Text Entry Section */}
-            <div className="flex flex-col items-center">
-              {!showTextInput ? (
-                <div className="group cursor-pointer" onClick={startTextEntry}>
-                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Unicode Writing Hand Emoji */}
-                    <HandWritingIcon className="text-9xl text-cream group-hover:scale-110 transition-transform duration-300"/>
+              {/* Text Entry Section */}
+              <div className="flex flex-col items-center">
+                {!showTextInput ? (
+                  <div className="group cursor-pointer" onClick={startTextEntry}>
+                    <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                      {/* Unicode Writing Hand Emoji */}
+                      <HandWritingIcon className="text-9xl text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="w-full max-w-2xl">
-                  <textarea
-                    value={textEntry}
-                    onChange={(e) => setTextEntry(e.target.value)}
-                    placeholder="What's on your mind?"
-                    className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
-                    rows={6}
-                    autoFocus
-                  />
-                  <div className="flex gap-4 justify-center">
-                    <button
-                      onClick={submitTextEntry}
-                      disabled={!textEntry.trim() || isSubmitting}
-                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
-                    >
-                      {isSubmitting ? 'Saving...' : 'Submit'}
-                    </button>
-                    <button
-                      onClick={cancelTextEntry}
-                      className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
-                    >
-                      Cancel
-                    </button>
+                ) : (
+                  <div className="w-full max-w-2xl">
+                    <textarea
+                      value={textEntry}
+                      onChange={(e) => setTextEntry(e.target.value)}
+                      placeholder="What's on your mind?"
+                      className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
+                      rows={6}
+                      autoFocus
+                    />
+                    <div className="flex gap-4 justify-center">
+                      <button
+                        onClick={submitTextEntry}
+                        disabled={!textEntry.trim() || isSubmitting}
+                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
+                      >
+                        {isSubmitting ? 'Saving...' : 'Submit'}
+                      </button>
+                      <button
+                        onClick={cancelTextEntry}
+                        className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
