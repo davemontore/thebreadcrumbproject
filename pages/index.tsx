@@ -330,12 +330,12 @@ export default function Home() {
               {/* Audio Recording Section */}
               <div className="flex flex-col items-center">
                 {!isRecording ? (
-                  <div className="group cursor-pointer" onClick={startRecording}>
-                    <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                                          {/* Unicode Microphone Emoji */}
-                    <ModernMicrophoneIcon className="text-[48rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
-                    </div>
+                                  <div className="group cursor-pointer" onClick={startRecording}>
+                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                    {/* Unicode Microphone Emoji */}
+                    <ModernMicrophoneIcon className="text-[8rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
+                </div>
                 ) : (
                   <div className="text-center">
                     <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -374,12 +374,12 @@ export default function Home() {
               {/* Text Entry Section */}
               <div className="flex flex-col items-center">
                 {!showTextInput ? (
-                  <div className="group cursor-pointer" onClick={startTextEntry}>
-                    <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                      {/* Unicode Writing Hand Emoji */}
-                      <HandWritingIcon className="text-[48rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
-                    </div>
+                                  <div className="group cursor-pointer" onClick={startTextEntry}>
+                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                    {/* Unicode Writing Hand Emoji */}
+                    <HandWritingIcon className="text-[8rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
+                </div>
                 ) : (
                   <div className="w-full max-w-2xl">
                     <textarea
