@@ -1,49 +1,48 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { AuthService } from '../lib/auth'
-import { DatabaseService } from '../lib/database'
+import { SimpleAuth } from '../lib/auth'
+import { JournalService } from '../lib/database'
 import { Breadcrumb } from '../lib/supabase'
 
 export default function Basket() {
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([])
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<boolean>(false)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication with Supabase
+    // Check authentication
     const checkUser = async () => {
-      const { user } = await AuthService.getCurrentUser()
-      if (!user) {
+      if (!SimpleAuth.isAuthenticated()) {
         router.push('/login')
         return
       }
-      setUser(user)
+      
+      setUser(true)
       
       // Load breadcrumbs from database
-      const breadcrumbs = await DatabaseService.getBreadcrumbs(user.id)
-      setBreadcrumbs(breadcrumbs)
+      try {
+        const entries = await JournalService.getEntries()
+        setBreadcrumbs(entries.map(entry => ({
+          id: entry.id,
+          user_id: 'default',
+          content: entry.content,
+          created_at: entry.created_at,
+          updated_at: entry.updated_at,
+          type: 'text' as const,
+          tags: []
+        })))
+      } catch (error) {
+        console.error('Error loading entries:', error)
+      }
     }
 
     checkUser()
-
-    // Listen for auth state changes
-    const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
-      if (!user) {
-        router.push('/login')
-      } else {
-        setUser(user)
-        // Reload breadcrumbs when user changes
-        DatabaseService.getBreadcrumbs(user.id).then(setBreadcrumbs)
-      }
-    })
-
-    return () => subscription?.unsubscribe()
   }, [router])
 
   const handleLogout = async () => {
-    await AuthService.signOut()
+    SimpleAuth.logout()
     router.push('/login')
   }
 
