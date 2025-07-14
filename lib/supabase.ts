@@ -2,8 +2,8 @@
 // Test change - checking if GitHub Desktop detects this
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.SUPABASE_DATABASE_URL || ''
+const supabaseAnonKey = process.env.SUPABASE_API_KEY || ''
 
 // Only create the client if we're in the browser and have the required environment variables
 export const supabase = typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey 

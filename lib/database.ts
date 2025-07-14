@@ -9,18 +9,20 @@ export interface JournalEntry {
 }
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.SUPABASE_DATABASE_URL
+const supabaseKey = process.env.SUPABASE_API_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase configuration is required. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Only create client if environment variables are available
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
 export class JournalService {
   // Get all journal entries
   static async getEntries(): Promise<JournalEntry[]> {
+    if (!supabase) {
+      console.warn('Supabase not configured, returning empty entries')
+      return []
+    }
+    
     try {
       const { data, error } = await supabase
         .from('journal_entries')
@@ -41,6 +43,11 @@ export class JournalService {
 
   // Create a new journal entry
   static async createEntry(content: string): Promise<JournalEntry | null> {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot create entry')
+      return null
+    }
+    
     try {
       const { data, error } = await supabase
         .from('journal_entries')
@@ -62,6 +69,11 @@ export class JournalService {
 
   // Update a journal entry
   static async updateEntry(id: string, content: string): Promise<JournalEntry | null> {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot update entry')
+      return null
+    }
+    
     try {
       const { data, error } = await supabase
         .from('journal_entries')
@@ -84,6 +96,11 @@ export class JournalService {
 
   // Delete a journal entry
   static async deleteEntry(id: string): Promise<boolean> {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot delete entry')
+      return false
+    }
+    
     try {
       const { error } = await supabase
         .from('journal_entries')
@@ -104,6 +121,11 @@ export class JournalService {
 
   // Subscribe to real-time updates
   static subscribeToEntries(callback: (entry: JournalEntry) => void) {
+    if (!supabase) {
+      console.warn('Supabase not configured, cannot subscribe to entries')
+      return null
+    }
+    
     return supabase
       .channel('journal_entries')
       .on(
