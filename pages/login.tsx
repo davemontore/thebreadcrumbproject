@@ -5,6 +5,7 @@ import { SimpleAuth } from '../lib/auth'
 
 export default function Login() {
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [isSetup, setIsSetup] = useState(false)
@@ -70,6 +71,9 @@ export default function Login() {
               <h1 className="text-3xl font-light text-cream mb-2">
                 The Breadcrumb Project
               </h1>
+              <p className="text-cream-80 mb-2 text-base italic">
+                Leaving a trail of wisdom for your kids to follow after you're gone
+              </p>
               <p className="text-cream-80">
                 {isSetup ? 'Enter your password to continue' : 'Set up your password'}
               </p>
@@ -77,18 +81,29 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-cream-80 mb-2">
-                  Password
-                </label>
+                <input
+                  type="text"
+                  id="username"
+                  value={username || ''}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                  placeholder="username"
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                />
+              </div>
+              <div>
                 <input
                   type="password"
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream"
-                  placeholder={isSetup ? "Enter your password" : "Choose a secure password"}
+                  className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                  placeholder="password"
                   required
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
               </div>
 

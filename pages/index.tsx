@@ -179,107 +179,113 @@ export default function Home() {
       <main className="min-h-screen bg-black text-cream p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-12">
-            <div className="text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12">
+            <div className="text-center mb-6 sm:mb-0">
               <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
                 <span className="block">The Breadcrumb</span>
                 <span className="block">Project</span>
               </h1>
             </div>
-            <div className="flex gap-3">
+            <div className="flex justify-center sm:justify-end">
               <button
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.5 12C2.5 6.75 12 2.5 21.5 12c0 4.5-4.5 7.5-9.5 7.5S2.5 16.5 2.5 12Z"/>
+                  <ellipse cx="8.5" cy="15" rx="1" ry="2" fill="#f5f5dc"/>
+                  <ellipse cx="12" cy="16" rx="1" ry="2" fill="#f5f5dc"/>
+                  <ellipse cx="15.5" cy="15" rx="1" ry="2" fill="#f5f5dc"/>
                 </svg>
               </button>
             </div>
           </div>
 
-          {/* Audio Recording Section */}
-          <div className="flex flex-col items-center mb-16">
-            {!isRecording ? (
-              <div className="group cursor-pointer" onClick={startRecording}>
-                <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                  <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C13.1 2 14 2.9 14 4V8C14 9.1 13.1 10 12 10C10.9 10 10 9.1 10 8V4C10 2.9 10.9 2 12 2ZM18 10V8C18 4.69 15.31 2 12 2C8.69 2 6 4.69 6 8V10C4.9 10 4 10.9 4 12V16C4 17.1 4.9 18 6 18H18C19.1 18 20 17.1 20 16V12C20 10.9 19.1 10 18 10ZM16 16H8V12H16V16Z"/>
-                  </svg>
+          {/* Main Content - Centered on Mobile */}
+          <div className="flex flex-col items-center justify-center min-h-[60vh] sm:min-h-auto">
+            {/* Audio Recording Section */}
+            <div className="flex flex-col items-center mb-16">
+              {!isRecording ? (
+                <div className="group cursor-pointer" onClick={startRecording}>
+                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                    <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 15c1.66 0 3-1.34 3-3V7a3 3 0 1 0-6 0v5c0 1.66 1.34 3 3 3zm5-3a1 1 0 1 1 2 0c0 3.07-2.13 5.64-5 6.32V21h3a1 1 0 1 1 0 2H7a1 1 0 1 1 0-2h3v-2.68c-2.87-.68-5-3.25-5-6.32a1 1 0 1 1 2 0c0 2.76 2.24 5 5 5s5-2.24 5-5z"/>
+                    </svg>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
-                </div>
-                <p className="text-cream-80 text-lg mb-4">
-                  {isPaused ? 'Recording Paused' : 'Recording...'}
-                </p>
-                <div className="flex gap-4 justify-center">
-                  {isPaused ? (
+              ) : (
+                <div className="text-center">
+                  <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
+                  </div>
+                  <p className="text-cream-80 text-lg mb-4">
+                    {isPaused ? 'Recording Paused' : 'Recording...'}
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    {isPaused ? (
+                      <button
+                        onClick={resumeRecording}
+                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                      >
+                        Resume
+                      </button>
+                    ) : (
+                      <button
+                        onClick={pauseRecording}
+                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                      >
+                        Pause
+                      </button>
+                    )}
                     <button
-                      onClick={resumeRecording}
-                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                      onClick={stopRecording}
+                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
-                      Resume
+                      Submit
                     </button>
-                  ) : (
-                    <button
-                      onClick={pauseRecording}
-                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
-                    >
-                      Pause
-                    </button>
-                  )}
-                  <button
-                    onClick={stopRecording}
-                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Submit
-                  </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Text Entry Section */}
-          <div className="flex flex-col items-center">
-            {!showTextInput ? (
-              <div className="group cursor-pointer" onClick={startTextEntry}>
-                <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                  <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                  </svg>
+            {/* Text Entry Section */}
+            <div className="flex flex-col items-center">
+              {!showTextInput ? (
+                <div className="group cursor-pointer" onClick={startTextEntry}>
+                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                    <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M16.24 3.56c-1.13-1.13-2.95-1.13-4.08 0l-7.6 7.6a2.88 2.88 0 0 0-.84 2.04c0 .77.3 1.5.84 2.04l2.12 2.12c.54.54 1.27.84 2.04.84.77 0 1.5-.3 2.04-.84l7.6-7.6c1.13-1.13 1.13-2.95 0-4.08zm-9.19 9.19l4.24 4.24M14.12 7.88l2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="w-full max-w-2xl">
-                <textarea
-                  value={textEntry}
-                  onChange={(e) => setTextEntry(e.target.value)}
-                  placeholder="What's on your mind?"
-                  className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
-                  rows={6}
-                  autoFocus
-                />
-                <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={submitTextEntry}
-                    disabled={!textEntry.trim() || isSubmitting}
-                    className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
-                  >
-                    {isSubmitting ? 'Saving...' : 'Submit'}
-                  </button>
-                  <button
-                    onClick={cancelTextEntry}
-                    className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
-                  >
-                    Cancel
-                  </button>
+              ) : (
+                <div className="w-full max-w-2xl">
+                  <textarea
+                    value={textEntry}
+                    onChange={(e) => setTextEntry(e.target.value)}
+                    placeholder="What's on your mind?"
+                    className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
+                    rows={6}
+                    autoFocus
+                  />
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={submitTextEntry}
+                      disabled={!textEntry.trim() || isSubmitting}
+                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
+                    >
+                      {isSubmitting ? 'Saving...' : 'Submit'}
+                    </button>
+                    <button
+                      onClick={cancelTextEntry}
+                      className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </main>
