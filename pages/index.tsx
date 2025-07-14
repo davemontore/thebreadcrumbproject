@@ -4,44 +4,42 @@ import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
 
-// Custom Vintage Microphone Icon Component
-const VintageMicrophoneIcon = ({ className }: { className?: string }) => (
+// Custom Modern Microphone Icon Component
+const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     {/* Main microphone body */}
-    <ellipse cx="12" cy="8" rx="4" ry="3" strokeLinecap="round"/>
-    {/* Microphone stand/base */}
+    <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" strokeLinecap="round"/>
+    {/* Microphone stand */}
     <path d="M12 11v8" strokeLinecap="round"/>
     <path d="M8 19h8" strokeLinecap="round"/>
-    <path d="M10 21h4" strokeLinecap="round"/>
     {/* Mesh grille pattern */}
-    <circle cx="12" cy="8" r="2" strokeLinecap="round"/>
-    <path d="M10 7h4" strokeLinecap="round"/>
-    <path d="M10 9h4" strokeLinecap="round"/>
-    {/* Stand details */}
+    <circle cx="12" cy="8" r="1.5" strokeLinecap="round"/>
+    <path d="M10.5 7h3" strokeLinecap="round"/>
+    <path d="M10.5 9h3" strokeLinecap="round"/>
+    {/* Stand base */}
     <path d="M9 19v2" strokeLinecap="round"/>
     <path d="M15 19v2" strokeLinecap="round"/>
   </svg>
 )
 
-// Custom Colonial Quill Icon Component
-const ColonialQuillIcon = ({ className }: { className?: string }) => (
+// Custom Hand Writing Icon Component
+const HandWritingIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    {/* Main quill shaft */}
-    <path d="M8 4l8 8-8 8" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Feather details */}
-    <path d="M16 12l-2-2" strokeLinecap="round"/>
-    <path d="M14 10l-2-2" strokeLinecap="round"/>
-    <path d="M12 8l-2-2" strokeLinecap="round"/>
-    {/* Ink well */}
-    <ellipse cx="6" cy="20" rx="2" ry="1.5" strokeLinecap="round"/>
-    <path d="M4 20h4" strokeLinecap="round"/>
-    {/* Quill tip */}
-    <path d="M16 12l2 2" strokeLinecap="round"/>
-    <path d="M18 14l1 1" strokeLinecap="round"/>
-    {/* Feather texture */}
-    <path d="M10 6l-1-1" strokeLinecap="round"/>
-    <path d="M12 4l-1-1" strokeLinecap="round"/>
-    <path d="M14 6l-1-1" strokeLinecap="round"/>
+    {/* Hand outline */}
+    <path d="M8 12l2-2 2 2 2-2 2 2" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Pencil */}
+    <path d="M16 8l4-4" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M18 6l2 2" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Pencil tip */}
+    <path d="M20 4l2-2" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Hand fingers */}
+    <path d="M8 12v4" strokeLinecap="round"/>
+    <path d="M10 12v3" strokeLinecap="round"/>
+    <path d="M12 12v3" strokeLinecap="round"/>
+    <path d="M14 12v3" strokeLinecap="round"/>
+    <path d="M16 12v2" strokeLinecap="round"/>
+    {/* Thumb */}
+    <path d="M6 14l2-2" strokeLinecap="round"/>
   </svg>
 )
 
@@ -346,7 +344,7 @@ export default function Home() {
                   <span className="block">The Breadcrumb</span>
                   <span className="block">Project</span>
                 </h1>
-                <p className="text-xl sm:text-2xl font-light italic text-cream-80 mt-2">
+                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-2" style={{ fontFamily: 'Caveat, cursive' }}>
                   A trail of wisdom for your kids to follow after you're gone
                 </p>
               </div>
@@ -357,7 +355,7 @@ export default function Home() {
                 <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                     {/* Elegant Vintage Microphone */}
-                    <VintageMicrophoneIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    <ModernMicrophoneIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
               ) : (
@@ -401,7 +399,7 @@ export default function Home() {
                   <div className="group cursor-pointer" onClick={startTextEntry}>
                     <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                       {/* Elegant Writing Quill */}
-                      <ColonialQuillIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                      <HandWritingIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
                     </div>
                   </div>
                 ) : (
