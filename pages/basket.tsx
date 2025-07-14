@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { SimpleAuth } from '../lib/auth'
-import { JournalService } from '../lib/database'
-import { Breadcrumb } from '../lib/supabase'
+import { JournalService, JournalEntry } from '../lib/database'
 
 export default function Basket() {
-  const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([])
+  const [breadcrumbs, setBreadcrumbs] = useState<JournalEntry[]>([])
   const [user, setUser] = useState<boolean>(false)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const router = useRouter()
@@ -24,15 +23,7 @@ export default function Basket() {
       // Load breadcrumbs from database
       try {
         const entries = await JournalService.getEntries()
-        setBreadcrumbs(entries.map(entry => ({
-          id: entry.id,
-          user_id: 'default',
-          content: entry.content,
-          created_at: entry.created_at,
-          updated_at: entry.updated_at,
-          type: 'text' as const,
-          tags: []
-        })))
+        setBreadcrumbs(entries)
       } catch (error) {
         console.error('Error loading entries:', error)
       }
@@ -136,7 +127,7 @@ export default function Basket() {
                           </svg>
                         )}
                       </span>
-                      {breadcrumb.tags.map((tag, index) => (
+                      {breadcrumb.tags?.map((tag, index) => (
                         <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
                           {tag}
                         </span>
