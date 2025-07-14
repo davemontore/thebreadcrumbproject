@@ -92,10 +92,7 @@ export default function Home() {
     setEditContent('')
   }
 
-  const handleLogout = () => {
-    SimpleAuth.logout()
-    router.push('/login')
-  }
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -172,7 +169,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Create Breadcrumb - The Breadcrumb Project</title>
+        <title>The Breadcrumb Project</title>
         <meta name="description" content="Record your thoughts and memories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
@@ -182,19 +179,20 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-12">
-            <h1 className="text-4xl font-light text-cream">Create Breadcrumb</h1>
+            <div className="text-center sm:text-left">
+              <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
+                <span className="block">The Breadcrumb</span>
+                <span className="block">Project</span>
+              </h1>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                🍞
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
-              >
-                Logout
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -203,17 +201,15 @@ export default function Home() {
           <div className="flex flex-col items-center mb-16">
             {!isRecording ? (
               <div className="group cursor-pointer" onClick={startRecording}>
-                <div className="w-48 h-48 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                  <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                  <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C13.1 2 14 2.9 14 4V8C14 9.1 13.1 10 12 10C10.9 10 10 9.1 10 8V4C10 2.9 10.9 2 12 2ZM18 10V8C18 4.69 15.31 2 12 2C8.69 2 6 4.69 6 8V10C4.9 10 4 10.9 4 12V16C4 17.1 4.9 18 6 18H18C19.1 18 20 17.1 20 16V12C20 10.9 19.1 10 18 10ZM16 16H8V12H16V16Z"/>
                   </svg>
                 </div>
-                <p className="text-center mt-4 text-cream-80 text-lg">Tap to Record Audio</p>
               </div>
             ) : (
               <div className="text-center">
-                <div className="w-48 h-48 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
                 </div>
                 <p className="text-cream-80 text-lg mb-4">
@@ -250,12 +246,11 @@ export default function Home() {
           <div className="flex flex-col items-center">
             {!showTextInput ? (
               <div className="group cursor-pointer" onClick={startTextEntry}>
-                <div className="w-48 h-48 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                  <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                  <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                   </svg>
                 </div>
-                <p className="text-center mt-4 text-cream-80 text-lg">Tap to Write Text</p>
               </div>
             ) : (
               <div className="w-full max-w-2xl">
