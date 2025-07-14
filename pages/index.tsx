@@ -128,16 +128,16 @@ export default function Home() {
         <meta name="theme-color" content="#f8fafc" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen bg-black">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-slate-200">
+        <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm border-b border-cream-30">
           <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-2xl font-bold text-cream">
               Journal
             </h1>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+              className="px-4 py-2 text-cream-60 hover:text-cream transition-colors"
             >
               Logout
             </button>
@@ -146,13 +146,13 @@ export default function Home() {
 
         <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
           {/* Input Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-cream-5 rounded-2xl shadow-sm border border-cream-10 p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <textarea
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 placeholder="What's on your mind?"
-                className="w-full p-4 border border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream"
                 rows={4}
                 disabled={isSubmitting}
               />
@@ -160,11 +160,11 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={!newEntry.trim() || isSubmitting}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+                  className="px-6 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
                 >
                   {isSubmitting ? 'Saving...' : 'Save Entry'}
                 </button>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-cream-60">
                   {entries.length} entries
                 </span>
               </div>
@@ -175,17 +175,17 @@ export default function Home() {
           <div className="space-y-4">
             {isLoading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-slate-500 mt-2">Loading entries...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cream-60 mx-auto"></div>
+                <p className="text-cream-60 mt-2">Loading entries...</p>
               </div>
             ) : entries.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4">📝</div>
-                <p className="text-slate-500">No entries yet. Start writing!</p>
+                <p className="text-cream-60">No entries yet. Start writing!</p>
               </div>
             ) : (
               entries.map((entry) => (
-                <div key={entry.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div key={entry.id} className="bg-cream-5 rounded-2xl shadow-sm border border-cream-10 p-6">
                   {editingId === entry.id ? (
                     <div className="space-y-4">
                       <textarea
