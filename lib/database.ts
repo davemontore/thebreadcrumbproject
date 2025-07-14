@@ -45,6 +45,11 @@ export class JournalService {
 
   // Create a new journal entry
   static async createEntry(content: string, type: 'audio' | 'text' = 'text', tags: string[] = []): Promise<JournalEntry | null> {
+    console.log('JournalService.createEntry called with:', { content, type, tags })
+    console.log('Supabase client exists:', !!supabase)
+    console.log('Supabase URL:', supabaseUrl)
+    console.log('Supabase Key exists:', !!supabaseKey)
+    
     if (!supabase) {
       console.warn('Supabase not configured, cannot create entry')
       return null
@@ -62,6 +67,7 @@ export class JournalService {
         throw error
       }
       
+      console.log('Entry created successfully:', data)
       return data
     } catch (error) {
       console.error('Error creating entry:', error)

@@ -253,7 +253,9 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      // Generate tags for text entry
+      console.log('Starting text entry submission...')
+      
+      // Generate tags for text entry using OpenAI
       const response = await fetch('/api/generate-tags', {
         method: 'POST',
         headers: {
@@ -266,13 +268,22 @@ export default function Home() {
       if (response.ok) {
         const result = await response.json()
         tags = result.tags
+        console.log('Generated tags:', tags)
+      } else {
+        console.error('Failed to generate tags:', response.status, response.statusText)
       }
 
+      console.log('Creating journal entry...')
       const result = await JournalService.createEntry(textEntry.trim(), 'text', tags)
+      console.log('Journal entry result:', result)
+      
       if (result) {
         setTextEntry('')
         setShowTextInput(false)
         loadEntries()
+        console.log('Entry created successfully')
+      } else {
+        console.error('Failed to create entry - no result returned')
       }
     } catch (error) {
       console.error('Error creating entry:', error)
