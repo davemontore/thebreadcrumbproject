@@ -1,5 +1,22 @@
 # Deployment Requirements
 
+## ⚠️ IMPORTANT: VERCEL DEPLOYMENT ⚠️
+
+**This application is deployed through Vercel, NOT GitHub Pages or other platforms.**
+
+- **Deployment Platform**: Vercel (https://vercel.com)
+- **Framework**: Next.js
+- **Auto-Deploy**: Changes are automatically deployed when pushed to the connected repository
+- **No Manual Deployment**: Simply commit and push changes - Vercel handles the rest
+
+**For future development:**
+- Always commit changes with `git commit -m "description"`
+- Push changes with `git push` 
+- Vercel will automatically detect changes and deploy
+- No need to run build commands or manual deployment steps
+
+---
+
 ## Important Notes
 
 **This is NOT a locally-run app.** This application requires cloud deployment because:

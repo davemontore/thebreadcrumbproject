@@ -3,48 +3,16 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
+import { MicrophoneIcon, PencilIcon } from '@heroicons/react/24/outline'
 
-// Elegant Wand Microphone Icon Component
+// Professional Microphone Icon Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    {/* Microphone head - classic oval shape */}
-    <ellipse cx="12" cy="7" rx="3.5" ry="2.5" strokeLinecap="round"/>
-    {/* Microphone handle - elegant wand */}
-    <line x1="12" y1="9.5" x2="12" y2="16" strokeLinecap="round"/>
-    {/* Stand base */}
-    <line x1="7" y1="16" x2="17" y2="16" strokeLinecap="round"/>
-    {/* Stand legs */}
-    <line x1="8" y1="16" x2="8" y2="19" strokeLinecap="round"/>
-    <line x1="16" y1="16" x2="16" y2="19" strokeLinecap="round"/>
-    {/* Mesh grille pattern */}
-    <circle cx="10" cy="6.5" r="0.4" fill="currentColor"/>
-    <circle cx="12" cy="6.5" r="0.4" fill="currentColor"/>
-    <circle cx="14" cy="6.5" r="0.4" fill="currentColor"/>
-    <circle cx="10" cy="7.5" r="0.4" fill="currentColor"/>
-    <circle cx="12" cy="7.5" r="0.4" fill="currentColor"/>
-    <circle cx="14" cy="7.5" r="0.4" fill="currentColor"/>
-  </svg>
+  <MicrophoneIcon className={className} />
 )
 
-// Elegant Feather Quill Icon Component
+// Professional Writing Icon Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    {/* Quill shaft - main pen body */}
-    <line x1="12" y1="18" x2="12" y2="8" strokeLinecap="round"/>
-    {/* Quill tip - writing point */}
-    <line x1="12" y1="8" x2="14" y2="6" strokeLinecap="round"/>
-    {/* Feather plume - elegant curved feathers */}
-    <path d="M12 10c0 0-2-1-4-1s-4 1-4 1" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M12 12c0 0-2-1-4-1s-4 1-4 1" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M12 14c0 0-2-1-4-1s-4 1-4 1" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Feather details - individual feather lines */}
-    <line x1="8" y1="9" x2="6" y2="8" strokeLinecap="round"/>
-    <line x1="8" y1="11" x2="6" y2="10" strokeLinecap="round"/>
-    <line x1="8" y1="13" x2="6" y2="12" strokeLinecap="round"/>
-    <line x1="8" y1="15" x2="6" y2="14" strokeLinecap="round"/>
-    {/* Ink well or base */}
-    <ellipse cx="12" cy="19" rx="2" ry="1" strokeLinecap="round"/>
-  </svg>
+  <PencilIcon className={className} />
 )
 
 // Custom Elegant Bread Slice Icon Component
@@ -358,8 +326,8 @@ export default function Home() {
               {!isRecording ? (
                 <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Elegant Vintage Microphone */}
-                    <ModernMicrophoneIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    {/* Professional Microphone */}
+                    <ModernMicrophoneIcon className="w-20 h-20 text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
               ) : (
@@ -402,8 +370,8 @@ export default function Home() {
                 {!showTextInput ? (
                   <div className="group cursor-pointer" onClick={startTextEntry}>
                     <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                      {/* Elegant Writing Quill */}
-                      <HandWritingIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                      {/* Professional Writing Pencil */}
+                      <HandWritingIcon className="w-20 h-20 text-cream group-hover:scale-110 transition-transform duration-300"/>
                     </div>
                   </div>
                 ) : (
