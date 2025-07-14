@@ -8,7 +8,7 @@ import { SimpleAuth } from '../lib/auth'
 // Unicode Microphone Emoji Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
   <span className={className} style={{ 
-    filter: 'brightness(0) saturate(100%) invert(70%) sepia(25%) saturate(400%) hue-rotate(359deg) brightness(80%) contrast(110%)'
+    filter: 'brightness(0) saturate(100%) invert(90%) sepia(10%) saturate(200%) hue-rotate(359deg) brightness(95%) contrast(85%)'
   }}>
     🎤
   </span>
@@ -17,7 +17,7 @@ const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
 // Unicode Writing Hand Emoji Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
   <span className={className} style={{ 
-    filter: 'brightness(0) saturate(100%) invert(70%) sepia(25%) saturate(400%) hue-rotate(359deg) brightness(80%) contrast(110%)'
+    filter: 'brightness(0) saturate(100%) invert(90%) sepia(10%) saturate(200%) hue-rotate(359deg) brightness(95%) contrast(85%)'
   }}>
     ✍️
   </span>
