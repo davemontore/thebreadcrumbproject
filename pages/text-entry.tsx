@@ -4,6 +4,22 @@ import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
 
+// Custom Elegant House Icon Component
+const ElegantHouseIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+    {/* Main house structure */}
+    <path d="M3 12l9-9 9 9" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5 10v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Door */}
+    <path d="M9 21v-6a3 3 0 0 1 6 0v6" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Windows */}
+    <path d="M7 14h2" strokeLinecap="round"/>
+    <path d="M15 14h2" strokeLinecap="round"/>
+    {/* Roof details */}
+    <path d="M3 12h18" strokeLinecap="round"/>
+  </svg>
+)
+
 export default function TextEntry() {
   const [newEntry, setNewEntry] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -59,9 +75,7 @@ export default function TextEntry() {
                 onClick={() => router.push('/')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                </svg>
+                <ElegantHouseIcon className="w-6 h-6 text-cream" />
               </button>
               <button
                 onClick={handleLogout}

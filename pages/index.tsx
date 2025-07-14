@@ -4,6 +4,77 @@ import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
 
+// Custom Vintage Microphone Icon Component
+const VintageMicrophoneIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+    {/* Main microphone body */}
+    <ellipse cx="12" cy="8" rx="4" ry="3" strokeLinecap="round"/>
+    {/* Microphone stand/base */}
+    <path d="M12 11v8" strokeLinecap="round"/>
+    <path d="M8 19h8" strokeLinecap="round"/>
+    <path d="M10 21h4" strokeLinecap="round"/>
+    {/* Mesh grille pattern */}
+    <circle cx="12" cy="8" r="2" strokeLinecap="round"/>
+    <path d="M10 7h4" strokeLinecap="round"/>
+    <path d="M10 9h4" strokeLinecap="round"/>
+    {/* Stand details */}
+    <path d="M9 19v2" strokeLinecap="round"/>
+    <path d="M15 19v2" strokeLinecap="round"/>
+  </svg>
+)
+
+// Custom Colonial Quill Icon Component
+const ColonialQuillIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+    {/* Main quill shaft */}
+    <path d="M8 4l8 8-8 8" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Feather details */}
+    <path d="M16 12l-2-2" strokeLinecap="round"/>
+    <path d="M14 10l-2-2" strokeLinecap="round"/>
+    <path d="M12 8l-2-2" strokeLinecap="round"/>
+    {/* Ink well */}
+    <ellipse cx="6" cy="20" rx="2" ry="1.5" strokeLinecap="round"/>
+    <path d="M4 20h4" strokeLinecap="round"/>
+    {/* Quill tip */}
+    <path d="M16 12l2 2" strokeLinecap="round"/>
+    <path d="M18 14l1 1" strokeLinecap="round"/>
+    {/* Feather texture */}
+    <path d="M10 6l-1-1" strokeLinecap="round"/>
+    <path d="M12 4l-1-1" strokeLinecap="round"/>
+    <path d="M14 6l-1-1" strokeLinecap="round"/>
+  </svg>
+)
+
+// Custom Elegant Bread Slice Icon Component
+const ElegantBreadIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+    {/* Main bread slice */}
+    <path d="M6 8c0-2 2-4 6-4s6 2 6 4v8c0 2-2 4-6 4s-6-2-6-4V8z" strokeLinecap="round"/>
+    {/* Bread texture lines */}
+    <path d="M8 10h8" strokeLinecap="round"/>
+    <path d="M8 12h8" strokeLinecap="round"/>
+    <path d="M8 14h6" strokeLinecap="round"/>
+    {/* Crust details */}
+    <path d="M6 8c0-2 2-4 6-4s6 2 6 4" strokeLinecap="round"/>
+  </svg>
+)
+
+// Custom Elegant House Icon Component
+const ElegantHouseIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+    {/* Main house structure */}
+    <path d="M3 12l9-9 9 9" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5 10v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Door */}
+    <path d="M9 21v-6a3 3 0 0 1 6 0v6" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Windows */}
+    <path d="M7 14h2" strokeLinecap="round"/>
+    <path d="M15 14h2" strokeLinecap="round"/>
+    {/* Roof details */}
+    <path d="M3 12h18" strokeLinecap="round"/>
+  </svg>
+)
+
 export default function Home() {
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [newEntry, setNewEntry] = useState('')
@@ -254,40 +325,36 @@ export default function Home() {
       <main className="min-h-screen bg-black text-cream p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center">
             <div className="flex justify-end w-full mb-4">
               <button
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                  <path d="M2 8.5C2 5.46 6.48 3 12 3s10 2.46 10 5.5c0 1.38-1.12 2.63-3 3.5V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6C3.12 11.13 2 9.88 2 8.5z" stroke="currentColor" strokeLinejoin="round"/>
-                </svg>
+                <ElegantBreadIcon className="w-6 h-6 text-cream"/>
               </button>
-            </div>
-            <div className="text-center">
-              <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
-                <span className="block">The Breadcrumb</span>
-                <span className="block">Project</span>
-              </h1>
             </div>
           </div>
 
-          {/* Main Content - Evenly Spaced on Mobile */}
-          <div className="flex flex-col items-center justify-between min-h-[calc(100vh-200px)] sm:min-h-auto">
-            {/* Audio Recording Section */}
-            <div className="flex flex-col items-center mb-16">
+          {/* Main Content - Title and Circles as a Unit, Vertically Centered */}
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
+            {/* Title and Circles Unit */}
+            <div className="flex flex-col items-center space-y-12">
+              {/* Title */}
+              <div className="text-center">
+                <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
+                  <span className="block">The Breadcrumb</span>
+                  <span className="block">Project</span>
+                </h1>
+              </div>
+
+              {/* Audio Recording Section */}
+              <div className="flex flex-col items-center">
               {!isRecording ? (
                 <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                     {/* Elegant Vintage Microphone */}
-                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
-                      <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" strokeLinecap="round"/>
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" strokeLinecap="round"/>
-                      <path d="M12 19v4" strokeLinecap="round"/>
-                      <path d="M8 23h8" strokeLinecap="round"/>
-                      <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                    </svg>
+                    <VintageMicrophoneIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
               ) : (
@@ -325,48 +392,43 @@ export default function Home() {
               )}
             </div>
 
-            {/* Text Entry Section */}
-            <div className="flex flex-col items-center">
-              {!showTextInput ? (
-                <div className="group cursor-pointer" onClick={startTextEntry}>
-                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Elegant Writing Quill */}
-                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
-                      <path d="M20 4L10 14l-2 2 2 2 2-2 10-10-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M10 14L6 18" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M18 6L20 4" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M8 16L6 18" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M16 8L14 10" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+              {/* Text Entry Section */}
+              <div className="flex flex-col items-center">
+                {!showTextInput ? (
+                  <div className="group cursor-pointer" onClick={startTextEntry}>
+                    <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                      {/* Elegant Writing Quill */}
+                      <ColonialQuillIcon className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="w-full max-w-2xl">
-                  <textarea
-                    value={textEntry}
-                    onChange={(e) => setTextEntry(e.target.value)}
-                    placeholder="What's on your mind?"
-                    className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
-                    rows={6}
-                    autoFocus
-                  />
-                  <div className="flex gap-4 justify-center">
-                    <button
-                      onClick={submitTextEntry}
-                      disabled={!textEntry.trim() || isSubmitting}
-                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
-                    >
-                      {isSubmitting ? 'Saving...' : 'Submit'}
-                    </button>
-                    <button
-                      onClick={cancelTextEntry}
-                      className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
-                    >
-                      Cancel
-                    </button>
+                ) : (
+                  <div className="w-full max-w-2xl">
+                    <textarea
+                      value={textEntry}
+                      onChange={(e) => setTextEntry(e.target.value)}
+                      placeholder="What's on your mind?"
+                      className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
+                      rows={6}
+                      autoFocus
+                    />
+                    <div className="flex gap-4 justify-center">
+                      <button
+                        onClick={submitTextEntry}
+                        disabled={!textEntry.trim() || isSubmitting}
+                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
+                      >
+                        {isSubmitting ? 'Saving...' : 'Submit'}
+                      </button>
+                      <button
+                        onClick={cancelTextEntry}
+                        className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
