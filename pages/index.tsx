@@ -4,51 +4,46 @@ import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
 
-// Clean Wand Microphone Icon Component
+// Elegant Wand Microphone Icon Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    {/* Microphone head - clean oval shape */}
-    <ellipse cx="12" cy="8" rx="3" ry="2" strokeLinecap="round"/>
-    {/* Microphone handle - straight wand */}
-    <line x1="12" y1="10" x2="12" y2="18" strokeLinecap="round"/>
-    {/* Stand base - simple horizontal line */}
-    <line x1="8" y1="18" x2="16" y2="18" strokeLinecap="round"/>
+    {/* Microphone head - classic oval shape */}
+    <ellipse cx="12" cy="7" rx="3.5" ry="2.5" strokeLinecap="round"/>
+    {/* Microphone handle - elegant wand */}
+    <line x1="12" y1="9.5" x2="12" y2="16" strokeLinecap="round"/>
+    {/* Stand base */}
+    <line x1="7" y1="16" x2="17" y2="16" strokeLinecap="round"/>
     {/* Stand legs */}
-    <line x1="9" y1="18" x2="9" y2="20" strokeLinecap="round"/>
-    <line x1="15" y1="18" x2="15" y2="20" strokeLinecap="round"/>
-    {/* Mesh pattern - simple dots */}
-    <circle cx="11" cy="7.5" r="0.5" fill="currentColor"/>
-    <circle cx="12" cy="7.5" r="0.5" fill="currentColor"/>
-    <circle cx="13" cy="7.5" r="0.5" fill="currentColor"/>
-    <circle cx="11" cy="8.5" r="0.5" fill="currentColor"/>
-    <circle cx="12" cy="8.5" r="0.5" fill="currentColor"/>
-    <circle cx="13" cy="8.5" r="0.5" fill="currentColor"/>
+    <line x1="8" y1="16" x2="8" y2="19" strokeLinecap="round"/>
+    <line x1="16" y1="16" x2="16" y2="19" strokeLinecap="round"/>
+    {/* Mesh grille pattern */}
+    <circle cx="10" cy="6.5" r="0.4" fill="currentColor"/>
+    <circle cx="12" cy="6.5" r="0.4" fill="currentColor"/>
+    <circle cx="14" cy="6.5" r="0.4" fill="currentColor"/>
+    <circle cx="10" cy="7.5" r="0.4" fill="currentColor"/>
+    <circle cx="12" cy="7.5" r="0.4" fill="currentColor"/>
+    <circle cx="14" cy="7.5" r="0.4" fill="currentColor"/>
   </svg>
 )
 
-// Clean Hand Writing Icon Component - Hand holding pencil
+// Elegant Feather Quill Icon Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    {/* Hand outline - simple, recognizable shape */}
-    <path d="M7 12c0-1 1-2 2-2s2 1 2 2v3c0 1-1 2-2 2s-2-1-2-2v-3z" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Thumb */}
-    <path d="M5 14c0-0.5 0.5-1 1-1s1 0.5 1 1" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Index finger extended */}
-    <path d="M11 10l2-2" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Middle finger */}
-    <path d="M9 12v2" strokeLinecap="round"/>
-    {/* Ring finger */}
-    <path d="M13 12v2" strokeLinecap="round"/>
-    {/* Pinky finger */}
-    <path d="M15 12v1.5" strokeLinecap="round"/>
-    {/* Pencil - clean straight line */}
-    <line x1="13" y1="8" x2="19" y2="2" strokeLinecap="round"/>
-    {/* Pencil tip */}
-    <line x1="19" y1="2" x2="21" y2="0" strokeLinecap="round"/>
-    {/* Pencil grip area */}
-    <line x1="14" y1="9" x2="16" y2="9" strokeLinecap="round"/>
-    {/* Pencil eraser */}
-    <line x1="13" y1="8" x2="13" y2="9.5" strokeLinecap="round"/>
+    {/* Quill shaft - main pen body */}
+    <line x1="12" y1="18" x2="12" y2="8" strokeLinecap="round"/>
+    {/* Quill tip - writing point */}
+    <line x1="12" y1="8" x2="14" y2="6" strokeLinecap="round"/>
+    {/* Feather plume - elegant curved feathers */}
+    <path d="M12 10c0 0-2-1-4-1s-4 1-4 1" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 12c0 0-2-1-4-1s-4 1-4 1" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 14c0 0-2-1-4-1s-4 1-4 1" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Feather details - individual feather lines */}
+    <line x1="8" y1="9" x2="6" y2="8" strokeLinecap="round"/>
+    <line x1="8" y1="11" x2="6" y2="10" strokeLinecap="round"/>
+    <line x1="8" y1="13" x2="6" y2="12" strokeLinecap="round"/>
+    <line x1="8" y1="15" x2="6" y2="14" strokeLinecap="round"/>
+    {/* Ink well or base */}
+    <ellipse cx="12" cy="19" rx="2" ry="1" strokeLinecap="round"/>
   </svg>
 )
 
