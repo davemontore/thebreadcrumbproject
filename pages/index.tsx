@@ -7,21 +7,30 @@ import { SimpleAuth } from '../lib/auth'
 
 // Unicode Microphone Emoji Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
-  <span className={className} style={{ fontSize: 'inherit' }}>
+  <span className={className} style={{ 
+    fontSize: 'inherit',
+    filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)'
+  }}>
     🎤
   </span>
 )
 
 // Unicode Writing Hand Emoji Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
-  <span className={className} style={{ fontSize: 'inherit' }}>
+  <span className={className} style={{ 
+    fontSize: 'inherit',
+    filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)'
+  }}>
     ✍️
   </span>
 )
 
 // Unicode Bread Emoji Component
 const ElegantBreadIcon = ({ className }: { className?: string }) => (
-  <span className={className} style={{ fontSize: 'inherit' }}>
+  <span className={className} style={{ 
+    fontSize: 'inherit',
+    filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)'
+  }}>
     🍞
   </span>
 )
@@ -298,7 +307,7 @@ export default function Home() {
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <ElegantBreadIcon className="text-2xl text-cream"/>
+                <ElegantBreadIcon className="w-6 h-6 text-cream"/>
               </button>
             </div>
           </div>
@@ -323,8 +332,8 @@ export default function Home() {
                 {!isRecording ? (
                   <div className="group cursor-pointer" onClick={startRecording}>
                     <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                      {/* Unicode Microphone Emoji */}
-                      <ModernMicrophoneIcon className="text-9xl text-cream group-hover:scale-110 transition-transform duration-300"/>
+                                          {/* Unicode Microphone Emoji */}
+                    <ModernMicrophoneIcon className="text-[24rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                     </div>
                   </div>
                 ) : (
@@ -368,7 +377,7 @@ export default function Home() {
                   <div className="group cursor-pointer" onClick={startTextEntry}>
                     <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                       {/* Unicode Writing Hand Emoji */}
-                      <HandWritingIcon className="text-9xl text-cream group-hover:scale-110 transition-transform duration-300"/>
+                      <HandWritingIcon className="text-[24rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                     </div>
                   </div>
                 ) : (
