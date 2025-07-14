@@ -332,7 +332,7 @@ export default function Home() {
                   <span className="block">Project</span>
                 </h1>
                 <p className="text-xl sm:text-2xl font-light text-cream-80 mt-2" style={{ fontFamily: 'Caveat, cursive' }}>
-                  A trail of wisdom for your kids to follow after you're gone
+                  A trail of wisdom for your kids to follow after you're gone.
                 </p>
               </div>
 
