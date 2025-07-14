@@ -333,7 +333,7 @@ export default function Home() {
                                   <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                     {/* Unicode Microphone Emoji */}
-                    <ModernMicrophoneIcon className="text-[8rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    <ModernMicrophoneIcon className="text-[24rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
                 ) : (
@@ -377,7 +377,7 @@ export default function Home() {
                                   <div className="group cursor-pointer" onClick={startTextEntry}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                     {/* Unicode Writing Hand Emoji */}
-                    <HandWritingIcon className="text-[8rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    <HandWritingIcon className="text-[24rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
                 ) : (
