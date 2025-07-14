@@ -3,16 +3,20 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
-import { MicrophoneIcon, PencilIcon } from '@heroicons/react/24/outline'
+// Remove Heroicons import - using Unicode emojis instead
 
-// Professional Microphone Icon Component
+// Unicode Microphone Emoji Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
-  <MicrophoneIcon className={className} />
+  <span className={className} style={{ fontSize: 'inherit', filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)' }}>
+    🎤
+  </span>
 )
 
-// Professional Writing Icon Component
+// Unicode Writing Hand Emoji Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
-  <PencilIcon className={className} />
+  <span className={className} style={{ fontSize: 'inherit', filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)' }}>
+    ✍️
+  </span>
 )
 
 // Custom Elegant Bread Slice Icon Component
@@ -326,8 +330,8 @@ export default function Home() {
               {!isRecording ? (
                 <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Professional Microphone */}
-                    <ModernMicrophoneIcon className="w-20 h-20 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    {/* Unicode Microphone Emoji */}
+                    <ModernMicrophoneIcon className="text-6xl text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
               ) : (
@@ -370,8 +374,8 @@ export default function Home() {
                 {!showTextInput ? (
                   <div className="group cursor-pointer" onClick={startTextEntry}>
                     <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                      {/* Professional Writing Pencil */}
-                      <HandWritingIcon className="w-20 h-20 text-cream group-hover:scale-110 transition-transform duration-300"/>
+                      {/* Unicode Writing Hand Emoji */}
+                      <HandWritingIcon className="text-6xl text-cream group-hover:scale-110 transition-transform duration-300"/>
                     </div>
                   </div>
                 ) : (
