@@ -280,12 +280,13 @@ export default function Home() {
               {!isRecording ? (
                 <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Elegant Microphone Icon */}
-                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                      <rect x="9" y="2" width="6" height="12" rx="3"/>
-                      <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
-                      <path d="M12 22v-4"/>
-                      <path d="M8 22h8"/>
+                    {/* Elegant Vintage Microphone */}
+                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                      <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" strokeLinecap="round"/>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" strokeLinecap="round"/>
+                      <path d="M12 19v4" strokeLinecap="round"/>
+                      <path d="M8 23h8" strokeLinecap="round"/>
+                      <circle cx="12" cy="12" r="1" fill="currentColor"/>
                     </svg>
                   </div>
                 </div>
@@ -329,10 +330,13 @@ export default function Home() {
               {!showTextInput ? (
                 <div className="group cursor-pointer" onClick={startTextEntry}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Elegant Writing Quill Icon */}
-                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                      <path d="M21 3c-2.5 2.5-7.5 7.5-13 13l-3 5 5-3c5.5-5.5 10.5-10.5 13-13-1-1-2-1-2-1z"/>
-                      <path d="M16 7l1 1"/>
+                    {/* Elegant Writing Quill */}
+                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                      <path d="M20 4L10 14l-2 2 2 2 2-2 10-10-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M10 14L6 18" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M18 6L20 4" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M8 16L6 18" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 8L14 10" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 </div>
