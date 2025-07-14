@@ -87,19 +87,19 @@ export default function Basket() {
       <main className="min-h-screen bg-black text-cream p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
-            <div className="text-center mb-6 sm:mb-0">
-              <h1 className="text-3xl sm:text-4xl font-light text-cream">Breadcrumb Basket</h1>
-            </div>
-            <div className="flex justify-center sm:justify-end">
+          <div className="flex flex-col items-center mb-8">
+            <div className="flex justify-end w-full mb-4">
               <button
                 onClick={() => router.push('/')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                 </svg>
               </button>
+            </div>
+            <div className="text-center">
+              <h1 className="text-3xl sm:text-4xl font-light text-cream">Breadcrumb Basket</h1>
             </div>
           </div>
 
