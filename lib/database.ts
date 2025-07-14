@@ -1,102 +1,121 @@
-import { supabase, Breadcrumb } from './supabase'
+import { createClient } from '@supabase/supabase-js'
 
-export class DatabaseService {
-  // Get all breadcrumbs for the current user
-  static async getBreadcrumbs(userId: string): Promise<Breadcrumb[]> {
+// Simple interface for journal entries
+export interface JournalEntry {
+  id: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Supabase configuration is required. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+export class JournalService {
+  // Get all journal entries
+  static async getEntries(): Promise<JournalEntry[]> {
     try {
       const { data, error } = await supabase
-        .from('breadcrumbs')
+        .from('journal_entries')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        throw error
+      }
+      
       return data || []
     } catch (error) {
-      console.error('Error fetching breadcrumbs:', error)
-      return []
+      console.error('Error fetching entries:', error)
+      throw error
     }
   }
 
-  // Create a new breadcrumb
-  static async createBreadcrumb(
-    userId: string,
-    content: string,
-    tags: string[],
-    type: 'audio' | 'text'
-  ): Promise<Breadcrumb | null> {
+  // Create a new journal entry
+  static async createEntry(content: string): Promise<JournalEntry | null> {
     try {
       const { data, error } = await supabase
-        .from('breadcrumbs')
-        .insert({
-          user_id: userId,
-          content,
-          tags,
-          type
-        })
+        .from('journal_entries')
+        .insert({ content })
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        throw error
+      }
+      
       return data
     } catch (error) {
-      console.error('Error creating breadcrumb:', error)
-      return null
+      console.error('Error creating entry:', error)
+      throw error
     }
   }
 
-  // Update a breadcrumb
-  static async updateBreadcrumb(
-    id: string,
-    updates: Partial<Breadcrumb>
-  ): Promise<Breadcrumb | null> {
+  // Update a journal entry
+  static async updateEntry(id: string, content: string): Promise<JournalEntry | null> {
     try {
       const { data, error } = await supabase
-        .from('breadcrumbs')
-        .update(updates)
+        .from('journal_entries')
+        .update({ content, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        throw error
+      }
+      
       return data
     } catch (error) {
-      console.error('Error updating breadcrumb:', error)
-      return null
+      console.error('Error updating entry:', error)
+      throw error
     }
   }
 
-  // Delete a breadcrumb
-  static async deleteBreadcrumb(id: string): Promise<boolean> {
+  // Delete a journal entry
+  static async deleteEntry(id: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('breadcrumbs')
+        .from('journal_entries')
         .delete()
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        throw error
+      }
+      
       return true
     } catch (error) {
-      console.error('Error deleting breadcrumb:', error)
-      return false
+      console.error('Error deleting entry:', error)
+      throw error
     }
   }
 
   // Subscribe to real-time updates
-  static subscribeToBreadcrumbs(userId: string, callback: (breadcrumb: Breadcrumb) => void) {
+  static subscribeToEntries(callback: (entry: JournalEntry) => void) {
     return supabase
-      .channel('breadcrumbs')
+      .channel('journal_entries')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'breadcrumbs',
-          filter: `user_id=eq.${userId}`
+          table: 'journal_entries'
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            callback(payload.new as Breadcrumb)
+            callback(payload.new as JournalEntry)
           }
         }
       )

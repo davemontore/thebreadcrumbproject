@@ -1,366 +1,252 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { createClient } from '@supabase/supabase-js'
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { JournalService, JournalEntry } from '../lib/database'
+import { SimpleAuth } from '../lib/auth'
 
 export default function Home() {
-  const [isRecording, setIsRecording] = useState(false)
+  const [entries, setEntries] = useState<JournalEntry[]>([])
+  const [newEntry, setNewEntry] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [textInput, setTextInput] = useState('')
-  const [isTextExpanded, setIsTextExpanded] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
   const router = useRouter()
 
+  // Check authentication and load entries on component mount
   useEffect(() => {
-    // Simple auth check
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      setUser(user)
+    if (!SimpleAuth.isAuthenticated()) {
+      router.push('/login')
+      return
     }
-
-    checkUser()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session?.user) {
-        router.push('/login')
-      } else {
-        setUser(session.user)
-      }
-    })
-
-    return () => subscription?.unsubscribe()
+    loadEntries()
   }, [router])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
+  const loadEntries = async () => {
+    setIsLoading(true)
+    try {
+      const data = await JournalService.getEntries()
+      setEntries(data)
+    } catch (error) {
+      console.error('Error loading entries:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newEntry.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      const result = await JournalService.createEntry(newEntry.trim())
+      if (result) {
+        setEntries(prev => [result, ...prev])
+        setNewEntry('')
+      }
+    } catch (error) {
+      console.error('Error creating entry:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this entry?')) return
+
+    try {
+      const success = await JournalService.deleteEntry(id)
+      if (success) {
+        setEntries(prev => prev.filter(entry => entry.id !== id))
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+    }
+  }
+
+  const handleEdit = async (id: string) => {
+    if (!editContent.trim()) return
+
+    try {
+      const result = await JournalService.updateEntry(id, editContent.trim())
+      if (result) {
+        setEntries(prev => prev.map(entry => 
+          entry.id === id ? result : entry
+        ))
+        setEditingId(null)
+        setEditContent('')
+      }
+    } catch (error) {
+      console.error('Error updating entry:', error)
+    }
+  }
+
+  const startEditing = (entry: JournalEntry) => {
+    setEditingId(entry.id)
+    setEditContent(entry.content)
+  }
+
+  const cancelEditing = () => {
+    setEditingId(null)
+    setEditContent('')
+  }
+
+  const handleLogout = () => {
+    SimpleAuth.logout()
     router.push('/login')
   }
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      const audioChunks: Blob[] = []
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
 
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data)
-      }
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
-        await transcribeAudio(audioBlob)
-        stream.getTracks().forEach(track => track.stop())
-      }
-
-      mediaRecorder.start()
-      setIsRecording(true)
-      ;(window as any).mediaRecorder = mediaRecorder
-    } catch (error) {
-      console.error('Error accessing microphone:', error)
-      alert('Could not access microphone. Please check permissions.')
-    }
-  }
-
-  const stopRecording = () => {
-    const mediaRecorder = (window as any).mediaRecorder
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop()
-    }
-    setIsRecording(false)
-  }
-
-  const transcribeAudio = async (audioBlob: Blob) => {
-    setIsLoading(true)
-    
-    try {
-      const openaiApiKey = localStorage.getItem('openaiApiKey')
-      
-      if (!openaiApiKey) {
-        alert('Please enter your OpenAI API key first. You can do this in your browser settings.')
-        setIsLoading(false)
-        return
-      }
-
-      const reader = new FileReader()
-      reader.readAsDataURL(audioBlob)
-      
-      reader.onload = async () => {
-        const base64Audio = reader.result as string
-        const base64Data = base64Audio.split(',')[1]
-        
-        const formData = new FormData()
-        formData.append('file', new Blob([Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))], { type: 'audio/wav' }), 'recording.wav')
-        formData.append('model', 'whisper-1')
-        formData.append('response_format', 'json')
-
-        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
-          },
-          body: formData,
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`)
-        }
-
-        const result = await response.json()
-        
-        // Save to database
-        const tags = generateTags(result.text)
-        await saveBreadcrumb(result.text, tags, 'audio')
-      }
-    } catch (error) {
-      console.error('Transcription error:', error)
-      alert(`Transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const saveBreadcrumb = async (content: string, tags: string[], type: 'audio' | 'text') => {
-    try {
-      const { error } = await supabase
-        .from('breadcrumbs')
-        .insert({
-          content,
-          tags,
-          type,
-          user_id: user?.id || 'anonymous'
-        })
-
-      if (error) throw error
-    } catch (error) {
-      console.error('Error saving breadcrumb:', error)
-      alert('Failed to save breadcrumb')
-    }
-  }
-
-  const handleTextSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!textInput.trim()) return
-
-    setIsLoading(true)
-    
-    try {
-      const tags = generateTags(textInput)
-      await saveBreadcrumb(textInput.trim(), tags, 'text')
-      setTextInput('')
-      setIsTextExpanded(false)
-    } catch (error) {
-      console.error('Error saving breadcrumb:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const generateTags = (text: string): string[] => {
-    const tags: string[] = []
-    const lowerText = text.toLowerCase()
-    
-    if (lowerText.includes('work') || lowerText.includes('job')) tags.push('#work')
-    if (lowerText.includes('family') || lowerText.includes('home')) tags.push('#family')
-    if (lowerText.includes('idea') || lowerText.includes('think')) tags.push('#idea')
-    if (lowerText.includes('feeling') || lowerText.includes('emotion')) tags.push('#feeling')
-    if (lowerText.includes('memory') || lowerText.includes('remember')) tags.push('#memory')
-    if (lowerText.includes('wisdom') || lowerText.includes('learn')) tags.push('#wisdom')
-    
-    if (tags.length === 0) tags.push('#thought', '#reflection')
-    
-    return tags
-  }
-
-  const handleRecordingClick = () => {
-    if (isRecording) {
-      stopRecording()
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      })
+    } else if (diffInHours < 48) {
+      return 'Yesterday'
     } else {
-      startRecording()
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      })
     }
-  }
-
-  const toggleTextInput = () => {
-    setIsTextExpanded(!isTextExpanded)
-    if (!isTextExpanded) {
-      setTimeout(() => {
-        const textarea = document.getElementById('textInput') as HTMLTextAreaElement
-        if (textarea) textarea.focus()
-      }, 100)
-    }
-  }
-
-  // Show loading while checking authentication
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-cream/80">Loading...</p>
-        </div>
-      </main>
-    )
   }
 
   return (
     <>
       <Head>
-        <title>The Breadcrumb Project</title>
-        <meta name="description" content="Record your thoughts and memories" />
+        <title>Simple Journal</title>
+        <meta name="description" content="A simple, elegant journaling app" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#f8fafc" />
       </Head>
 
-      <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
-        <button 
-          onClick={handleLogout}
-          className="fixed top-4 right-4 px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
-        >
-          Logout
-        </button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-slate-200">
+          <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-slate-800">
+              Journal
+            </h1>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </header>
 
-        <div className="text-center max-w-md">
-          <h1 className="text-4xl font-light mb-12 text-cream">
-            The Breadcrumb Project
-          </h1>
-          
-          <p className="text-lg mb-12 text-cream/80 leading-relaxed">
-            A trail of wisdom for your kids to follow after you're gone.
-          </p>
-
-          {/* Audio Recording Button */}
-          <button
-            onClick={handleRecordingClick}
-            disabled={isLoading}
-            className={`
-              w-24 h-24 rounded-full border-2 transition-all duration-300 mb-6
-              ${isRecording 
-                ? 'bg-red-600 border-red-400 animate-pulse' 
-                : 'bg-cream/10 border-cream/30 hover:bg-cream/20'
-              }
-              ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
-          >
-            <div className="text-2xl">
-              {isLoading ? '⏳' : isRecording ? '⏹️' : '🎤'}
-            </div>
-          </button>
-
-          <p className="text-sm text-cream/60 mb-8">
-            {isLoading ? 'Processing...' : isRecording ? 'Recording... Tap to stop' : 'Tap to record a breadcrumb'}
-          </p>
-
-          {/* Text Input Container */}
-          <div className="w-full mb-8">
-            {!isTextExpanded ? (
-              <button
-                onClick={toggleTextInput}
-                className="w-24 h-24 rounded-full border-2 border-cream/30 bg-cream/10 hover:bg-cream/20 transition-all duration-300 mx-auto flex items-center justify-center"
-              >
-                <div className="text-2xl">✏️</div>
-              </button>
-            ) : (
-              <form onSubmit={handleTextSubmit} className="w-full">
-                <textarea
-                  id="textInput"
-                  value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Write your thoughts..."
-                  className="w-full px-4 py-3 bg-cream/10 border border-cream/30 rounded-lg text-cream placeholder-cream/50 focus:outline-none focus:border-cream/50 resize-none"
-                  rows={4}
-                  autoFocus
-                />
-                <div className="flex gap-2 mt-3">
-                  <button
-                    type="submit"
-                    disabled={!textInput.trim()}
-                    className="flex-1 px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors disabled:opacity-50"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={toggleTextInput}
-                    className="px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-            
-            {!isTextExpanded && (
-              <p className="text-sm text-cream/60 mt-3">
-                Tap to write a breadcrumb
-              </p>
-            )}
+        <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+          {/* Input Section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <textarea
+                value={newEntry}
+                onChange={(e) => setNewEntry(e.target.value)}
+                placeholder="What's on your mind?"
+                className="w-full p-4 border border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                rows={4}
+                disabled={isSubmitting}
+              />
+              <div className="flex justify-between items-center">
+                <button
+                  type="submit"
+                  disabled={!newEntry.trim() || isSubmitting}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Entry'}
+                </button>
+                <span className="text-sm text-slate-500">
+                  {entries.length} entries
+                </span>
+              </div>
+            </form>
           </div>
 
-          {/* Navigation to Breadcrumb Basket */}
-          <button
-            onClick={() => router.push('/basket')}
-            className="px-6 py-3 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
-          >
-            View Breadcrumb Basket
-          </button>
-        </div>
-      </main>
-
-      <style jsx global>{`
-        :root {
-          --cream: #f5f5dc;
-        }
-        
-        body {
-          background-color: #000000;
-          color: #f5f5dc;
-        }
-        
-        .bg-black {
-          background-color: #000000;
-        }
-        
-        .text-cream {
-          color: #f5f5dc;
-        }
-        
-        .bg-cream\/10 {
-          background-color: rgba(245, 245, 220, 0.1);
-        }
-        
-        .bg-cream\/20 {
-          background-color: rgba(245, 245, 220, 0.2);
-        }
-        
-        .border-cream\/30 {
-          border-color: rgba(245, 245, 220, 0.3);
-        }
-        
-        .text-cream\/80 {
-          color: rgba(245, 245, 220, 0.8);
-        }
-        
-        .text-cream\/60 {
-          color: rgba(245, 245, 220, 0.6);
-        }
-        
-        .text-cream\/50 {
-          color: rgba(245, 245, 220, 0.5);
-        }
-        
-        .placeholder-cream\/50::placeholder {
-          color: rgba(245, 245, 220, 0.5);
-        }
-      `}</style>
+          {/* Entries List */}
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-slate-500 mt-2">Loading entries...</p>
+              </div>
+            ) : entries.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-4xl mb-4">📝</div>
+                <p className="text-slate-500">No entries yet. Start writing!</p>
+              </div>
+            ) : (
+              entries.map((entry) => (
+                <div key={entry.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                  {editingId === entry.id ? (
+                    <div className="space-y-4">
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="w-full p-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows={4}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(entry.id)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-sm text-slate-500">
+                          {formatDate(entry.created_at)}
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEditing(entry)}
+                            className="text-cream-60 hover:text-cream-80 transition-colors p-1"
+                            title="Edit entry"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(entry.id)}
+                            className="text-cream-60 hover:text-red-400 transition-colors p-1"
+                            title="Delete entry"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">
+                        {entry.content}
+                      </p>
+                    </>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </main>
+      </div>
     </>
   )
 } 

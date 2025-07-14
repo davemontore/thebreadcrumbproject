@@ -73,7 +73,7 @@ export default function Basket() {
     return (
       <main className="min-h-screen bg-black text-cream flex flex-col items-center justify-center p-4">
         <div className="text-center">
-          <p className="text-cream/80">Loading...</p>
+          <p className="text-cream-80">Loading...</p>
         </div>
       </main>
     )
@@ -96,13 +96,15 @@ export default function Basket() {
             <div className="flex gap-3">
               <button
                 onClick={() => router.push('/')}
-                className="px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
+                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                🏠
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                </svg>
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
+                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
                 Logout
               </button>
@@ -112,11 +114,11 @@ export default function Basket() {
           {/* Breadcrumbs Display */}
           {breadcrumbs.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-cream/60 text-lg mb-4">No breadcrumbs yet.</p>
-              <p className="text-cream/40 mb-6">Start recording or writing to leave your first trace.</p>
+              <p className="text-cream-60 text-lg mb-4">No breadcrumbs yet.</p>
+              <p className="text-cream-40 mb-6">Start recording or writing to leave your first trace.</p>
               <button
                 onClick={() => router.push('/')}
-                className="px-6 py-3 bg-cream/10 border border-cream/30 rounded-lg text-cream hover:bg-cream/20 transition-colors"
+                className="px-6 py-3 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
                 Create Your First Breadcrumb
               </button>
@@ -124,9 +126,9 @@ export default function Basket() {
           ) : (
             <div className="space-y-4">
               {breadcrumbs.map((breadcrumb) => (
-                <div key={breadcrumb.id} className="bg-cream/5 border border-cream/10 rounded-lg p-6">
+                <div key={breadcrumb.id} className="bg-cream-5 border border-cream-10 rounded-lg p-6">
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-sm text-cream/60">
+                    <span className="text-sm text-cream-60">
                       {new Date(breadcrumb.created_at).toLocaleDateString('en-US', { 
                         year: 'numeric', 
                         month: 'long', 
@@ -137,11 +139,11 @@ export default function Basket() {
                       })}
                     </span>
                     <div className="flex gap-2">
-                      <span className="text-xs bg-cream/10 text-cream/80 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
                         {breadcrumb.type === 'audio' ? '🎤' : '✏️'}
                       </span>
                       {breadcrumb.tags.map((tag, index) => (
-                        <span key={index} className="text-xs bg-cream/10 text-cream/80 px-2 py-1 rounded-full">
+                        <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
                           {tag}
                         </span>
                       ))}
@@ -154,7 +156,7 @@ export default function Basket() {
                         <p className="whitespace-pre-wrap">{breadcrumb.content}</p>
                         <button
                           onClick={() => toggleExpanded(breadcrumb.id)}
-                          className="text-sm text-cream/60 hover:text-cream/80 mt-2 underline"
+                          className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
                         >
                           See Less
                         </button>
@@ -165,7 +167,7 @@ export default function Basket() {
                         {isLongerThanPreview(breadcrumb.content) && (
                           <button
                             onClick={() => toggleExpanded(breadcrumb.id)}
-                            className="text-sm text-cream/60 hover:text-cream/80 mt-2 underline"
+                            className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
                           >
                             See More
                           </button>
@@ -179,57 +181,6 @@ export default function Basket() {
           )}
         </div>
       </main>
-
-      <style jsx global>{`
-        :root {
-          --cream: #f5f5dc;
-        }
-        
-        body {
-          background-color: #000000;
-          color: #f5f5dc;
-        }
-        
-        .bg-black {
-          background-color: #000000;
-        }
-        
-        .text-cream {
-          color: #f5f5dc;
-        }
-        
-        .bg-cream\/5 {
-          background-color: rgba(245, 245, 220, 0.05);
-        }
-        
-        .bg-cream\/10 {
-          background-color: rgba(245, 245, 220, 0.1);
-        }
-        
-        .bg-cream\/20 {
-          background-color: rgba(245, 245, 220, 0.2);
-        }
-        
-        .border-cream\/10 {
-          border-color: rgba(245, 245, 220, 0.1);
-        }
-        
-        .border-cream\/30 {
-          border-color: rgba(245, 245, 220, 0.3);
-        }
-        
-        .text-cream\/80 {
-          color: rgba(245, 245, 220, 0.8);
-        }
-        
-        .text-cream\/60 {
-          color: rgba(245, 245, 220, 0.6);
-        }
-        
-        .text-cream\/40 {
-          color: rgba(245, 245, 220, 0.4);
-        }
-      `}</style>
     </>
   )
 } 
