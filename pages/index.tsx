@@ -260,8 +260,8 @@ export default function Home() {
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M2 8.5C2 5.46 6.48 3 12 3s10 2.46 10 5.5c0 1.38-1.12 2.63-3 3.5V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6C3.12 11.13 2 9.88 2 8.5z" stroke="currentColor" strokeLinejoin="round"/>
                 </svg>
               </button>
             </div>
@@ -273,8 +273,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Main Content - Centered on Mobile */}
-          <div className="flex flex-col items-center justify-center min-h-[60vh] sm:min-h-auto">
+          {/* Main Content - Evenly Spaced on Mobile */}
+          <div className="flex flex-col items-center justify-between min-h-[calc(100vh-200px)] sm:min-h-auto">
             {/* Audio Recording Section */}
             <div className="flex flex-col items-center mb-16">
               {!isRecording ? (
