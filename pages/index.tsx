@@ -173,6 +173,7 @@ export default function Home() {
         <meta name="description" content="Record your thoughts and memories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
+        {/* Updated styling with Montserrat font and elegant design */}
       </Head>
 
       <main className="min-h-screen bg-black text-cream p-4">
