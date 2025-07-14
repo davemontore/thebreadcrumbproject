@@ -254,25 +254,22 @@ export default function Home() {
       <main className="min-h-screen bg-black text-cream p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12">
-            <div className="text-center mb-6 sm:mb-0">
-              <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
-                <span className="block">The Breadcrumb</span>
-                <span className="block">Project</span>
-              </h1>
-            </div>
-            <div className="flex justify-center sm:justify-end">
+          <div className="flex flex-col items-center mb-8">
+            <div className="flex justify-end w-full mb-4">
               <button
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M2.5 12C2.5 6.75 12 2.5 21.5 12c0 4.5-4.5 7.5-9.5 7.5S2.5 16.5 2.5 12Z"/>
-                  <ellipse cx="8.5" cy="15" rx="1" ry="2" fill="#f5f5dc"/>
-                  <ellipse cx="12" cy="16" rx="1" ry="2" fill="#f5f5dc"/>
-                  <ellipse cx="15.5" cy="15" rx="1" ry="2" fill="#f5f5dc"/>
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </button>
+            </div>
+            <div className="text-center">
+              <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
+                <span className="block">The Breadcrumb</span>
+                <span className="block">Project</span>
+              </h1>
             </div>
           </div>
 
@@ -283,8 +280,12 @@ export default function Home() {
               {!isRecording ? (
                 <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 15c1.66 0 3-1.34 3-3V7a3 3 0 1 0-6 0v5c0 1.66 1.34 3 3 3zm5-3a1 1 0 1 1 2 0c0 3.07-2.13 5.64-5 6.32V21h3a1 1 0 1 1 0 2H7a1 1 0 1 1 0-2h3v-2.68c-2.87-.68-5-3.25-5-6.32a1 1 0 1 1 2 0c0 2.76 2.24 5 5 5s5-2.24 5-5z"/>
+                    {/* Elegant Microphone Icon */}
+                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <rect x="9" y="2" width="6" height="12" rx="3"/>
+                      <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+                      <path d="M12 22v-4"/>
+                      <path d="M8 22h8"/>
                     </svg>
                   </div>
                 </div>
@@ -328,8 +329,10 @@ export default function Home() {
               {!showTextInput ? (
                 <div className="group cursor-pointer" onClick={startTextEntry}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    <svg className="w-12 h-12 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M16.24 3.56c-1.13-1.13-2.95-1.13-4.08 0l-7.6 7.6a2.88 2.88 0 0 0-.84 2.04c0 .77.3 1.5.84 2.04l2.12 2.12c.54.54 1.27.84 2.04.84.77 0 1.5-.3 2.04-.84l7.6-7.6c1.13-1.13 1.13-2.95 0-4.08zm-9.19 9.19l4.24 4.24M14.12 7.88l2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                    {/* Elegant Writing Quill Icon */}
+                    <svg className="w-16 h-16 text-cream group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path d="M21 3c-2.5 2.5-7.5 7.5-13 13l-3 5 5-3c5.5-5.5 10.5-10.5 13-13-1-1-2-1-2-1z"/>
+                      <path d="M16 7l1 1"/>
                     </svg>
                   </div>
                 </div>
