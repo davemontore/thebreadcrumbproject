@@ -8,7 +8,7 @@ import { SimpleAuth } from '../lib/auth'
 // Unicode Microphone Emoji Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
   <span className={className} style={{ 
-    filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)'
+    filter: 'brightness(0) saturate(100%) invert(85%) sepia(15%) saturate(300%) hue-rotate(359deg) brightness(90%) contrast(95%)'
   }}>
     🎤
   </span>
@@ -17,7 +17,7 @@ const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
 // Unicode Writing Hand Emoji Component
 const HandWritingIcon = ({ className }: { className?: string }) => (
   <span className={className} style={{ 
-    filter: 'brightness(0) saturate(100%) invert(94%) sepia(8%) saturate(427%) hue-rotate(359deg) brightness(96%) contrast(89%)'
+    filter: 'brightness(0) saturate(100%) invert(85%) sepia(15%) saturate(300%) hue-rotate(359deg) brightness(90%) contrast(95%)'
   }}>
     ✍️
   </span>
@@ -331,7 +331,7 @@ export default function Home() {
                                   <div className="group cursor-pointer" onClick={startRecording}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                     {/* Unicode Microphone Emoji */}
-                    <ModernMicrophoneIcon className="text-[12rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    <ModernMicrophoneIcon className="text-[9rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
                 ) : (
@@ -375,7 +375,7 @@ export default function Home() {
                                   <div className="group cursor-pointer" onClick={startTextEntry}>
                   <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                     {/* Unicode Writing Hand Emoji */}
-                    <HandWritingIcon className="text-[12rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                    <HandWritingIcon className="text-[9rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
                   </div>
                 </div>
                 ) : (
