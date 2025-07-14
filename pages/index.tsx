@@ -4,42 +4,60 @@ import Head from 'next/head'
 import { JournalService, JournalEntry } from '../lib/database'
 import { SimpleAuth } from '../lib/auth'
 
-// Custom Modern Microphone Icon Component
+// Custom Modern Wand Microphone Icon Component
 const ModernMicrophoneIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    {/* Main microphone body */}
-    <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" strokeLinecap="round"/>
-    {/* Microphone stand */}
-    <path d="M12 11v8" strokeLinecap="round"/>
-    <path d="M8 19h8" strokeLinecap="round"/>
-    {/* Mesh grille pattern */}
-    <circle cx="12" cy="8" r="1.5" strokeLinecap="round"/>
-    <path d="M10.5 7h3" strokeLinecap="round"/>
-    <path d="M10.5 9h3" strokeLinecap="round"/>
-    {/* Stand base */}
-    <path d="M9 19v2" strokeLinecap="round"/>
-    <path d="M15 19v2" strokeLinecap="round"/>
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    {/* Main microphone body - realistic wand shape */}
+    <path d="M10 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V4z" fill="currentColor"/>
+    {/* Microphone head - detailed with mesh pattern */}
+    <ellipse cx="12" cy="8" rx="2.5" ry="1.8" fill="currentColor"/>
+    {/* Mesh grille pattern - realistic dots */}
+    <circle cx="11" cy="7.5" r="0.3" fill="rgba(0,0,0,0.2)"/>
+    <circle cx="12" cy="7.5" r="0.3" fill="rgba(0,0,0,0.2)"/>
+    <circle cx="13" cy="7.5" r="0.3" fill="rgba(0,0,0,0.2)"/>
+    <circle cx="11" cy="8.5" r="0.3" fill="rgba(0,0,0,0.2)"/>
+    <circle cx="12" cy="8.5" r="0.3" fill="rgba(0,0,0,0.2)"/>
+    <circle cx="13" cy="8.5" r="0.3" fill="rgba(0,0,0,0.2)"/>
+    {/* Microphone handle - sleek design */}
+    <rect x="11" y="10" width="2" height="8" rx="1" fill="currentColor"/>
+    {/* Handle grip details */}
+    <rect x="11.2" y="11" width="1.6" height="1" rx="0.5" fill="rgba(0,0,0,0.1)"/>
+    <rect x="11.2" y="13" width="1.6" height="1" rx="0.5" fill="rgba(0,0,0,0.1)"/>
+    <rect x="11.2" y="15" width="1.6" height="1" rx="0.5" fill="rgba(0,0,0,0.1)"/>
+    {/* Stand base - professional mount */}
+    <path d="M8 18h8v1a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1z" fill="currentColor"/>
+    {/* Stand mounting bracket */}
+    <rect x="10" y="17" width="4" height="2" rx="0.5" fill="rgba(0,0,0,0.1)"/>
   </svg>
 )
 
-// Custom Hand Writing Icon Component
+// Custom Hand Writing Icon Component - Realistic hand holding pencil
 const HandWritingIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    {/* Hand outline */}
-    <path d="M8 12l2-2 2 2 2-2 2 2" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Pencil */}
-    <path d="M16 8l4-4" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M18 6l2 2" strokeLinecap="round" strokeLinejoin="round"/>
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    {/* Hand palm - realistic shape */}
+    <path d="M8 12c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5v4c0 1.5-1.5 2.5-3 2.5s-3-1-3-2.5v-4z" fill="currentColor"/>
+    {/* Thumb - natural curve */}
+    <path d="M6 14c0-1 1-1.5 2-1.5s2 0.5 2 1.5v1.5c0 0.5-0.5 1-1 1s-1-0.5-1-1V14z" fill="currentColor"/>
+    {/* Index finger extended */}
+    <path d="M11 10c0-0.5 0.5-1 1-1s1 0.5 1 1v2c0 0.5-0.5 1-1 1s-1-0.5-1-1v-2z" fill="currentColor"/>
+    {/* Middle finger */}
+    <path d="M9 12c0-0.5 0.5-1 1-1s1 0.5 1 1v2c0 0.5-0.5 1-1 1s-1-0.5-1-1v-2z" fill="currentColor"/>
+    {/* Ring finger */}
+    <path d="M13 12c0-0.5 0.5-1 1-1s1 0.5 1 1v2c0 0.5-0.5 1-1 1s-1-0.5-1-1v-2z" fill="currentColor"/>
+    {/* Pinky finger */}
+    <path d="M15 12c0-0.5 0.5-1 1-1s1 0.5 1 1v1.5c0 0.5-0.5 1-1 1s-1-0.5-1-1V12z" fill="currentColor"/>
+    {/* Pencil - realistic wooden pencil */}
+    <path d="M14 8l6-6" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" fill="none"/>
+    {/* Pencil body - wooden texture */}
+    <rect x="14" y="8" width="5" height="1.5" rx="0.5" fill="#8B4513"/>
     {/* Pencil tip */}
-    <path d="M20 4l2-2" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* Hand fingers */}
-    <path d="M8 12v4" strokeLinecap="round"/>
-    <path d="M10 12v3" strokeLinecap="round"/>
-    <path d="M12 12v3" strokeLinecap="round"/>
-    <path d="M14 12v3" strokeLinecap="round"/>
-    <path d="M16 12v2" strokeLinecap="round"/>
-    {/* Thumb */}
-    <path d="M6 14l2-2" strokeLinecap="round"/>
+    <path d="M19 2l2-2" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" fill="none"/>
+    {/* Pencil grip area - rubber grip */}
+    <rect x="15" y="8.5" width="2" height="1" rx="0.3" fill="rgba(0,0,0,0.2)"/>
+    {/* Pencil eraser */}
+    <rect x="13.5" y="8" width="0.5" height="1.5" rx="0.2" fill="#FFB6C1"/>
+    {/* Hand shadow for depth */}
+    <path d="M8 12c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5v4c0 1.5-1.5 2.5-3 2.5s-3-1-3-2.5v-4z" fill="rgba(0,0,0,0.1)" transform="translate(0.5,0.5)"/>
   </svg>
 )
 
