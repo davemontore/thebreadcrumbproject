@@ -342,10 +342,13 @@ export default function Home() {
             <div className="flex flex-col items-center space-y-12">
               {/* Title */}
               <div className="text-center">
-                <h1 className="text-4xl sm:text-5xl font-light text-cream leading-tight">
+                <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight">
                   <span className="block">The Breadcrumb</span>
                   <span className="block">Project</span>
                 </h1>
+                <p className="text-xl sm:text-2xl font-light italic text-cream-80 mt-2">
+                  A trail of wisdom for your kids to follow after you're gone
+                </p>
               </div>
 
               {/* Audio Recording Section */}

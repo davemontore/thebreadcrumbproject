@@ -99,7 +99,7 @@ export default function Basket() {
               </button>
             </div>
             <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl font-light text-cream">Breadcrumb Basket</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-cream">Breadcrumb Basket</h1>
             </div>
           </div>
 
