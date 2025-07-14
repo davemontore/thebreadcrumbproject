@@ -11,8 +11,8 @@ export interface JournalEntry {
 }
 
 // Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_DATABASE_URL
-const supabaseKey = process.env.SUPABASE_API_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // Only create client if environment variables are available
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
