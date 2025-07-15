@@ -253,40 +253,27 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      console.log('Starting text entry submission...')
+      console.log('=== TEXT ENTRY DEBUG START ===')
+      console.log('Text to submit:', textEntry.trim())
       
-      // Generate tags for text entry using OpenAI
-      const response = await fetch('/api/generate-tags', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: textEntry.trim() }),
-      })
-
-      let tags: string[] = []
-      if (response.ok) {
-        const result = await response.json()
-        tags = result.tags
-        console.log('Generated tags:', tags)
-      } else {
-        console.error('Failed to generate tags:', response.status, response.statusText)
-      }
-
-      console.log('Creating journal entry...')
-      const result = await JournalService.createEntry(textEntry.trim(), 'text', tags)
-      console.log('Journal entry result:', result)
+      // Skip tag generation for now - go straight to database
+      console.log('Skipping tag generation, going straight to database...')
+      
+      console.log('Calling JournalService.createEntry...')
+      const result = await JournalService.createEntry(textEntry.trim(), 'text', [])
+      console.log('JournalService.createEntry returned:', result)
       
       if (result) {
+        console.log('SUCCESS: Entry created, clearing form...')
         setTextEntry('')
         setShowTextInput(false)
         loadEntries()
-        console.log('Entry created successfully')
       } else {
-        console.error('Failed to create entry - no result returned')
+        console.error('FAILED: JournalService.createEntry returned null')
       }
+      console.log('=== TEXT ENTRY DEBUG END ===')
     } catch (error) {
-      console.error('Error creating entry:', error)
+      console.error('ERROR in submitTextEntry:', error)
     } finally {
       setIsSubmitting(false)
     }
