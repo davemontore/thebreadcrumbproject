@@ -18,7 +18,9 @@ export default function Basket() {
   useEffect(() => {
     // Check if mobile
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      console.log('Mobile detection:', { width: window.innerWidth, isMobile: mobile })
     }
     
     checkMobile()
@@ -114,13 +116,17 @@ export default function Basket() {
   const getPreviewText = (text: string, isMobile: boolean = false): string => {
     const lines = text.split('\n')
     const previewLines = isMobile ? lines.slice(0, 3) : lines.slice(0, 5)
-    return previewLines.join('\n')
+    const result = previewLines.join('\n')
+    console.log('Preview text:', { isMobile, originalLines: lines.length, previewLines: previewLines.length, result })
+    return result
   }
 
   const isLongerThanPreview = (text: string, isMobile: boolean = false): boolean => {
     const lines = text.split('\n')
     const maxLines = isMobile ? 3 : 5
-    return lines.length > maxLines || text.length > (isMobile ? 150 : 250)
+    const isLonger = lines.length > maxLines
+    console.log('Is longer than preview:', { isMobile, lines: lines.length, maxLines, isLonger, textLength: text.length })
+    return isLonger
   }
 
   // Show loading while checking authentication
@@ -159,6 +165,7 @@ export default function Basket() {
             </div>
             <div className="text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-cream">Breadcrumb Basket</h1>
+              <p className="text-xs text-cream-40 mt-1">Mobile: {isMobile ? 'Yes' : 'No'}</p>
             </div>
           </div>
 
