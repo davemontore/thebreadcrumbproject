@@ -113,20 +113,17 @@ export default function Basket() {
     }
   }
 
-  const getPreviewText = (text: string, isMobile: boolean = false): string => {
+  const getPreviewText = (text: string): string => {
     const lines = text.split('\n')
-    const previewLines = isMobile ? lines.slice(0, 3) : lines.slice(0, 5)
+    const previewLines = lines.slice(0, 3)
     const result = previewLines.join('\n')
-    console.log('Preview text:', { isMobile, originalLines: lines.length, previewLines: previewLines.length, result })
     return result
   }
 
-  const isLongerThanPreview = (text: string, isMobile: boolean = false): boolean => {
+  const isLongerThanPreview = (text: string): boolean => {
     const lines = text.split('\n')
-    const maxLines = isMobile ? 3 : 5
-    const isLonger = lines.length > maxLines
-    console.log('Is longer than preview:', { isMobile, lines: lines.length, maxLines, isLonger, textLength: text.length })
-    return isLonger
+    const maxLines = 3
+    return lines.length > maxLines
   }
 
   // Show loading while checking authentication
@@ -165,7 +162,6 @@ export default function Basket() {
             </div>
             <div className="text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-cream">Breadcrumb Basket</h1>
-              <p className="text-xs text-cream-40 mt-1">Mobile: {isMobile ? 'Yes' : 'No'}</p>
             </div>
           </div>
 
@@ -253,8 +249,8 @@ export default function Basket() {
                               </div>
                             ) : (
                               <div>
-                                <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text, isMobile)}</p>
-                                {isLongerThanPreview(breadcrumb.text, isMobile) && (
+                                <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text)}</p>
+                                {isLongerThanPreview(breadcrumb.text) && (
                                   <button
                                     onClick={() => toggleExpanded(breadcrumb.id)}
                                     className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
