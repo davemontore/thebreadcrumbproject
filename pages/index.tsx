@@ -337,13 +337,6 @@ export default function Home() {
               <div className="flex flex-col items-center">
                 {!isRecording ? (
                   <div className="flex flex-col items-center space-y-4">
-                    <input
-                      type="text"
-                      value={audioTitle}
-                      onChange={(e) => setAudioTitle(e.target.value)}
-                      placeholder="Title for your audio entry (optional)"
-                      className="w-64 p-2 border border-cream-30 rounded bg-cream-10 text-cream text-center"
-                    />
                     <div className="group cursor-pointer" onClick={startRecording}>
                       <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
                         {/* Unicode Microphone Emoji */}
@@ -353,6 +346,13 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="text-center">
+                    <input
+                      type="text"
+                      value={audioTitle}
+                      onChange={(e) => setAudioTitle(e.target.value)}
+                      placeholder="Title for your audio entry (optional)"
+                      className="w-64 p-2 border border-cream-30 rounded bg-cream-10 text-cream text-center mb-4"
+                    />
                     <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
                     </div>
