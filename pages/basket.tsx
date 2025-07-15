@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { SimpleAuth } from '../lib/auth'
-import { FirebaseService, JournalEntry } from '../lib/firebase-service'
+import { LocalStorageService, JournalEntry } from '../lib/local-storage-service'
 
 export default function Basket() {
   const [breadcrumbs, setBreadcrumbs] = useState<JournalEntry[]>([])
@@ -22,7 +22,7 @@ export default function Basket() {
       
       // Load breadcrumbs from database
       try {
-        const entries = await FirebaseService.getEntries()
+        const entries = await LocalStorageService.getEntries()
         setBreadcrumbs(entries)
       } catch (error) {
         console.error('Error loading entries:', error)
