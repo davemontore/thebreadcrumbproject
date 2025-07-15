@@ -322,19 +322,19 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
             {/* Title and Circles Unit */}
             <div className="flex flex-col items-center">
-              {/* Title - positioned between bread icon and audio circle */}
-              <div className="text-center mb-16">
+              {/* Title with equal spacing */}
+              <div className="text-center mb-8">
                 <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight">
                   <span className="block">The Breadcrumb</span>
                   <span className="block">Project</span>
                 </h1>
-                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-2" style={{ fontFamily: 'Caveat, cursive' }}>
+                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-8" style={{ fontFamily: 'Caveat, cursive' }}>
                   A trail of wisdom for your kids to follow after you're gone.
                 </p>
               </div>
 
               {/* Audio Recording Section */}
-              <div className="flex flex-col items-center mb-12">
+              <div className="flex flex-col items-center mb-8">
                 {!isRecording ? (
                   <div className="flex flex-col items-center space-y-4">
                     <div className="group cursor-pointer" onClick={startRecording}>
