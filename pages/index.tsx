@@ -321,9 +321,9 @@ export default function Home() {
           {/* Main Content - Title and Circles as a Unit, Vertically Centered */}
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
             {/* Title and Circles Unit */}
-            <div className="flex flex-col items-center space-y-12">
-              {/* Title */}
-              <div className="text-center">
+            <div className="flex flex-col items-center">
+              {/* Title - positioned between bread icon and audio circle */}
+              <div className="text-center mb-16">
                 <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight">
                   <span className="block">The Breadcrumb</span>
                   <span className="block">Project</span>
@@ -334,7 +334,7 @@ export default function Home() {
               </div>
 
               {/* Audio Recording Section */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center mb-12">
                 {!isRecording ? (
                   <div className="flex flex-col items-center space-y-4">
                     <div className="group cursor-pointer" onClick={startRecording}>
