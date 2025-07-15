@@ -52,15 +52,17 @@ export class JournalService {
 
   // Create a new journal entry
   static async createEntry(content: string, type: 'audio' | 'text' = 'text', tags: string[] = []): Promise<JournalEntry | null> {
+    console.log('=== DATABASE DEBUG START ===')
     console.log('JournalService.createEntry called with:', { content, type, tags })
     
     const supabase = createSupabaseClient()
     console.log('Supabase client exists:', !!supabase)
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('Supabase URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
     console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
     
     if (!supabase) {
-      console.warn('Supabase not configured, cannot create entry')
+      console.error('FAILED: Supabase client is null - environment variables missing')
+      console.log('=== DATABASE DEBUG END ===')
       return null
     }
     
@@ -76,10 +78,12 @@ export class JournalService {
         throw error
       }
       
-      console.log('Entry created successfully:', data)
+      console.log('SUCCESS: Entry created successfully:', data)
+      console.log('=== DATABASE DEBUG END ===')
       return data
     } catch (error) {
-      console.error('Error creating entry:', error)
+      console.error('ERROR: Database operation failed:', error)
+      console.log('=== DATABASE DEBUG END ===')
       throw error
     }
   }
