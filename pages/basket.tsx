@@ -8,7 +8,24 @@ export default function Basket() {
   const [breadcrumbs, setBreadcrumbs] = useState<JournalEntry[]>([])
   const [user, setUser] = useState<boolean>(false)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editTitle, setEditTitle] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     // Check authentication
@@ -23,6 +40,7 @@ export default function Basket() {
       // Load breadcrumbs from database
       try {
         const entries = await FirebaseService.getEntries()
+        console.log('Basket: Loaded entries:', entries)
         setBreadcrumbs(entries)
       } catch (error) {
         console.error('Error loading entries:', error)
@@ -31,8 +49,6 @@ export default function Basket() {
 
     checkUser()
   }, [router])
-
-
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems)
@@ -44,15 +60,69 @@ export default function Basket() {
     setExpandedItems(newExpanded)
   }
 
-  const getPreviewText = (text: string): string => {
+  const startEditing = (entry: JournalEntry) => {
+    setEditingId(entry.id)
+    setEditText(entry.text)
+    setEditTitle(entry.title || '')
+  }
+
+  const cancelEditing = () => {
+    setEditingId(null)
+    setEditText('')
+    setEditTitle('')
+  }
+
+  const saveEdit = async () => {
+    if (!editingId || !editText.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      // Generate new title and tags for the edited text
+      const response = await fetch('/api/generate-tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: editText.trim() }),
+      })
+
+      let newTitle = ''
+      let newTags: string[] = []
+      
+      if (response.ok) {
+        const { title: generatedTitle, tags: generatedTags } = await response.json()
+        newTitle = generatedTitle
+        newTags = generatedTags
+      }
+
+      const success = await FirebaseService.updateEntry(editingId, editText.trim(), newTitle, newTags)
+      
+      if (success) {
+        // Refresh entries
+        const entries = await FirebaseService.getEntries()
+        setBreadcrumbs(entries)
+        cancelEditing()
+      } else {
+        alert('Failed to update entry')
+      }
+    } catch (error) {
+      console.error('Error updating entry:', error)
+      alert('Error updating entry')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const getPreviewText = (text: string, isMobile: boolean = false): string => {
     const lines = text.split('\n')
-    const previewLines = lines.slice(0, 3)
+    const previewLines = isMobile ? lines.slice(0, 3) : lines.slice(0, 5)
     return previewLines.join('\n')
   }
 
-  const isLongerThanPreview = (text: string): boolean => {
+  const isLongerThanPreview = (text: string, isMobile: boolean = false): boolean => {
     const lines = text.split('\n')
-    return lines.length > 3 || text.length > 200
+    const maxLines = isMobile ? 3 : 5
+    return lines.length > maxLines || text.length > (isMobile ? 150 : 250)
   }
 
   // Show loading while checking authentication
@@ -116,44 +186,88 @@ export default function Basket() {
                       })}
                     </span>
                     <div className="flex gap-2">
-                      <span className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
-                        <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M16.24 3.56c-1.13-1.13-2.95-1.13-4.08 0l-7.6 7.6a2.88 2.88 0 0 0-.84 2.04c0 .77.3 1.5.84 2.04l2.12 2.12c.54.54 1.27.84 2.04.84.77 0 1.5-.3 2.04-.84l7.6-7.6c1.13-1.13 1.13-2.95 0-4.08zm-9.19 9.19l4.24 4.24M14.12 7.88l2 2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
-                      {breadcrumb.tags?.map((tag, index) => (
-                        <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
-                          {tag}
-                        </span>
-                      ))}
+                      <button
+                        onClick={() => startEditing(breadcrumb)}
+                        className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      {breadcrumb.tags && breadcrumb.tags.length > 0 ? (
+                        breadcrumb.tags.map((tag, index) => (
+                          <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-cream-40">No tags</span>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="text-cream leading-relaxed">
-                    {expandedItems.has(breadcrumb.id) ? (
-                      <div>
-                        <p className="whitespace-pre-wrap">{breadcrumb.text}</p>
+                  {editingId === breadcrumb.id ? (
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        placeholder="Title (optional)"
+                        className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream"
+                      />
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream"
+                        rows={6}
+                      />
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => toggleExpanded(breadcrumb.id)}
-                          className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                          onClick={saveEdit}
+                          disabled={!editText.trim() || isSubmitting}
+                          className="px-4 py-2 bg-cream-20 text-cream rounded hover:bg-cream-30 disabled:opacity-50 transition-colors"
                         >
-                          See Less
+                          {isSubmitting ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="px-4 py-2 bg-cream-10 text-cream-60 rounded hover:bg-cream-20 transition-colors"
+                        >
+                          Cancel
                         </button>
                       </div>
-                    ) : (
-                      <div>
-                        <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text)}</p>
-                        {isLongerThanPreview(breadcrumb.text) && (
-                          <button
-                            onClick={() => toggleExpanded(breadcrumb.id)}
-                            className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
-                          >
-                            See More
-                          </button>
+                    </div>
+                  ) : (
+                    <>
+                      {breadcrumb.title && (
+                        <h3 className="text-lg font-semibold text-cream mb-3">{breadcrumb.title}</h3>
+                      )}
+                      
+                      <div className="text-cream leading-relaxed">
+                        {expandedItems.has(breadcrumb.id) ? (
+                          <div>
+                            <p className="whitespace-pre-wrap">{breadcrumb.text}</p>
+                            <button
+                              onClick={() => toggleExpanded(breadcrumb.id)}
+                              className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                            >
+                              See Less
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text, isMobile)}</p>
+                            {isLongerThanPreview(breadcrumb.text, isMobile) && (
+                              <button
+                                onClick={() => toggleExpanded(breadcrumb.id)}
+                                className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                              >
+                                See More
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

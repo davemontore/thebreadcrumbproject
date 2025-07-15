@@ -13,11 +13,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Text is required' })
     }
 
-    const tags = await WhisperService.generateTags(text)
+    const [tags, title] = await Promise.all([
+      WhisperService.generateTags(text),
+      WhisperService.generateTitle(text)
+    ])
     
-    res.status(200).json({ tags })
+    res.status(200).json({ tags, title })
   } catch (error) {
-    console.error('Error generating tags:', error)
-    res.status(500).json({ error: 'Failed to generate tags' })
+    console.error('Error generating tags and title:', error)
+    res.status(500).json({ error: 'Failed to generate tags and title' })
   }
 } 

@@ -40,7 +40,26 @@ export default function TextEntry() {
     setIsSubmitting(true)
     try {
       console.log('TextEntry: Starting submission with text:', newEntry.trim())
-      const result = await FirebaseService.createEntry(newEntry.trim())
+      
+      // Generate title and tags for text entry
+      const response = await fetch('/api/generate-tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: newEntry.trim() }),
+      })
+
+      let title = ''
+      let tags: string[] = []
+      
+      if (response.ok) {
+        const { title: generatedTitle, tags: generatedTags } = await response.json()
+        title = generatedTitle
+        tags = generatedTags
+      }
+
+      const result = await FirebaseService.createEntry(newEntry.trim(), title, tags)
       console.log('TextEntry: Firebase result:', result)
       
       if (result) {
@@ -111,14 +130,14 @@ export default function TextEntry() {
                   disabled={!newEntry.trim() || isSubmitting}
                   className="px-6 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Breadcrumb'}
+                  {isSubmitting ? 'Saving...' : 'Save Entry'}
                 </button>
                 <button
                   type="button"
                   onClick={() => router.push('/basket')}
                   className="px-4 py-2 text-cream-60 hover:text-cream transition-colors"
                 >
-                  View Basket
+                  View Entries
                 </button>
               </div>
             </form>

@@ -28,12 +28,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Transcribe audio
         const transcription = await WhisperService.transcribeAudio(audioBlob)
 
-        // Generate tags
-        const tags = await WhisperService.generateTags(transcription)
+        // Generate tags and title
+        const [tags, title] = await Promise.all([
+          WhisperService.generateTags(transcription),
+          WhisperService.generateTitle(transcription)
+        ])
 
         res.status(200).json({
           transcription,
           tags,
+          title,
         })
       } catch (error) {
         console.error('Error processing audio:', error)

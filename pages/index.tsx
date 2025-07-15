@@ -189,10 +189,10 @@ export default function Home() {
           })
 
           if (response.ok) {
-            const { transcription, tags } = await response.json()
+            const { transcription, tags, title } = await response.json()
             
             // Save to database
-            const result = await FirebaseService.createEntry(transcription)
+            const result = await FirebaseService.createEntry(transcription, title, tags)
             if (result) {
               // Refresh entries
               loadEntries()
@@ -250,7 +250,26 @@ export default function Home() {
     setIsSubmitting(true)
     try {
       console.log('Index: Starting text submission:', textEntry.trim())
-      const result = await FirebaseService.createEntry(textEntry.trim())
+      
+      // Generate title and tags for text entry
+      const response = await fetch('/api/generate-tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: textEntry.trim() }),
+      })
+
+      let title = ''
+      let tags: string[] = []
+      
+      if (response.ok) {
+        const { title: generatedTitle, tags: generatedTags } = await response.json()
+        title = generatedTitle
+        tags = generatedTags
+      }
+
+      const result = await FirebaseService.createEntry(textEntry.trim(), title, tags)
       console.log('Index: Firebase result:', result)
       
       if (result) {

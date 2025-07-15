@@ -60,12 +60,27 @@ A beautiful, secure journaling app that syncs across all your devices using Fire
    - Verify your Firebase project is active
    - Ensure Realtime Database is created
 
-2. **"Voice recording not working"**
+2. **"Index not defined" Firebase error**
+   - Go to Firebase Console → Realtime Database → Rules
+   - Replace all rules with this exact format:
+   ```json
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+   ```
+   - **Important**: Copy the ENTIRE block including outer braces
+   - Delete any existing rules before pasting
+   - Click "Publish"
+
+3. **"Voice recording not working"**
    - Check that Whisper API key is set
    - Verify microphone permissions
    - Check browser console for errors
 
-3. **"App won't load"**
+4. **"App won't load"**
    - Verify your Firebase credentials are correct
    - Check that all dependencies are installed
    - Clear browser cache and try again

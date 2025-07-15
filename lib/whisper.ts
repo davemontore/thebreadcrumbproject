@@ -57,4 +57,30 @@ export class WhisperService {
       return []
     }
   }
+
+  static async generateTitle(text: string): Promise<string> {
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that generates concise, meaningful titles for journal entries. Create a title that captures the essence of the entry in 3-8 words. Return only the title, no additional text or quotes.'
+          },
+          {
+            role: 'user',
+            content: `Generate a title for this journal entry: "${text}"`
+          }
+        ],
+        max_tokens: 30,
+        temperature: 0.3,
+      })
+
+      const title = response.choices[0]?.message?.content || ''
+      return title.trim()
+    } catch (error) {
+      console.error('Error generating title:', error)
+      return ''
+    }
+  }
 } 
