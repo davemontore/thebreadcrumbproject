@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { ref, get } from 'firebase/database';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -11,18 +11,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Testing Firebase connection...');
     console.log('Database instance:', db);
     
-    // Try to access the collection
-    const testCollection = collection(db, 'journal_entries');
-    console.log('Collection reference created');
+    // Try to access the journal_entries node
+    const entriesRef = ref(db, 'journal_entries');
+    console.log('Database reference created');
     
-    // Try to get documents
-    const querySnapshot = await getDocs(testCollection);
-    console.log('Successfully queried collection, found', querySnapshot.docs.length, 'documents');
+    // Try to get data
+    const snapshot = await get(entriesRef);
+    console.log('Successfully queried database, found', snapshot.exists() ? Object.keys(snapshot.val()).length : 0, 'entries');
     
     res.status(200).json({ 
       success: true, 
       message: 'Firebase connection successful',
-      documentCount: querySnapshot.docs.length
+      entryCount: snapshot.exists() ? Object.keys(snapshot.val()).length : 0
     });
   } catch (error: any) {
     console.error('Firebase test error:', error);

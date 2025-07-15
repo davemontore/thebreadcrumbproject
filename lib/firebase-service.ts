@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
+import { ref, push, get, query, orderByChild, serverTimestamp } from 'firebase/database';
 
 export interface JournalEntry {
   id: string;
@@ -14,16 +14,17 @@ export class FirebaseService {
       console.log('FirebaseService: Attempting to create entry with text:', text);
       console.log('FirebaseService: Database instance:', db);
       
-      const docRef = await addDoc(collection(db, 'journal_entries'), {
+      const entriesRef = ref(db, 'journal_entries');
+      const newEntryRef = await push(entriesRef, {
         text: text,
-        timestamp: Timestamp.now(),
+        timestamp: serverTimestamp(),
         tags: []
       });
 
-      console.log('FirebaseService: Entry created successfully with ID:', docRef.id);
+      console.log('FirebaseService: Entry created successfully with ID:', newEntryRef.key);
 
       return {
-        id: docRef.id,
+        id: newEntryRef.key || '',
         text: text,
         timestamp: new Date(),
         tags: []
@@ -43,17 +44,27 @@ export class FirebaseService {
   static async getEntries(): Promise<JournalEntry[]> {
     try {
       console.log('FirebaseService: Attempting to get entries');
-      const q = query(collection(db, 'journal_entries'), orderBy('timestamp', 'desc'));
-      const querySnapshot = await getDocs(q);
+      const entriesRef = ref(db, 'journal_entries');
+      const entriesQuery = query(entriesRef, orderByChild('timestamp'));
+      const snapshot = await get(entriesQuery);
       
-      console.log('FirebaseService: Retrieved entries:', querySnapshot.docs.length);
+            console.log('FirebaseService: Retrieved entries:', snapshot.exists() ? Object.keys(snapshot.val()).length : 0);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        text: doc.data().text,
-        timestamp: doc.data().timestamp.toDate(),
-        tags: doc.data().tags || []
-      }));
+      const entries: JournalEntry[] = [];
+      if (snapshot.exists()) {
+        snapshot.forEach((childSnapshot) => {
+          const data = childSnapshot.val();
+          entries.push({
+            id: childSnapshot.key || '',
+            text: data.text,
+            timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
+            tags: data.tags || []
+          });
+        });
+      }
+      
+      // Sort by timestamp descending (newest first)
+      return entries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     } catch (error: any) {
       console.error('FirebaseService: Error getting entries:', error);
       console.error('FirebaseService: Error details:', {

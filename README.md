@@ -1,45 +1,50 @@
-# The Breadcrumb Project
+# HFL - Secure Journal App
 
-A beautiful, secure journaling app that syncs across all your devices using Firebase cloud database.
+> **⚠️ IMPORTANT: This app uses Firebase Realtime Database, NOT Firestore. See [DATABASE.md](DATABASE.md) for details.**
+
+A beautiful, secure journaling app that syncs across all your devices using Firebase Realtime Database.
 
 ## Features
 
-- ✍️ **Text Journaling** - Write your thoughts and memories
-- 🎤 **Audio Recording** - Record voice messages (coming soon)
-- 📱 **Cross-Device Sync** - Access your entries from any device
-- 🔒 **Secure Storage** - All data encrypted and secure
-- 🎨 **Beautiful UI** - Elegant, minimalist design
+- ✍️ **Text Journaling**: Write your thoughts and memories
+- 🎤 **Voice Recording**: Speak your entries with AI transcription
+- 📱 **Cross-Device Sync**: Access from phone, tablet, computer
+- 🔒 **Secure Storage**: All data encrypted and secure
+- 🏷️ **Smart Tagging**: AI-powered tags for easy organization
+- 🎨 **Beautiful Design**: Clean, distraction-free interface
 
 ## Quick Start
 
-1. **Set up Firebase database** (see [SETUP.md](SETUP.md))
-2. **Install dependencies**: `npm install`
-3. **Run the app**: `npm run dev`
-4. **Open**: http://localhost:3000
+1. **Set up Firebase Realtime Database** (see [SETUP.md](SETUP.md))
+2. **Review database configuration** (see [DATABASE.md](DATABASE.md))
+3. **Install dependencies**: `npm install`
+4. **Run locally**: `npm run dev`
+5. **Open**: [http://localhost:3000](http://localhost:3000)
 
 ## Requirements
 
-- **Node.js** (v16 or higher)
+- **Node.js** - JavaScript runtime
 - **Firebase account** - Free cloud database
-- **Modern web browser**
+- **Whisper API key** - For voice transcription
 
 ## How It Works
 
-1. **Cloud Database**: All entries stored securely in Firebase
-2. **Real-time Sync**: Changes appear instantly across devices
-3. **Offline Support**: Works even without internet connection
-4. **Secure Authentication**: Simple, secure user management
-5. **Beautiful Design**: Clean, elegant interface
+1. **Cloud Database**: All entries stored securely in Firebase Realtime Database
+2. **Real-time Sync**: Changes appear instantly across all devices
+3. **Voice AI**: Whisper API transcribes your voice to text
+4. **Smart Tags**: AI generates relevant tags for organization
+5. **Local Storage**: Sensitive data encrypted locally
 
-## Technology Stack
+## Tech Stack
 
 - **Frontend**: Next.js, React, TypeScript
 - **Styling**: Tailwind CSS
-- **Database**: Firebase Firestore
+- **Database**: Firebase Realtime Database
 - **Authentication**: Firebase Auth
-- **Deployment**: Vercel (recommended)
+- **Voice AI**: OpenAI Whisper API
+- **Deployment**: Vercel
 
-## Security Features
+## Security
 
 - **Encrypted Data**: All data encrypted in transit and at rest
 - **Secure Database**: Firebase provides enterprise-grade security
@@ -48,22 +53,37 @@ A beautiful, secure journaling app that syncs across all your devices using Fire
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues:
 
-1. **"Database connection failed"**
+1. **"Firebase connection failed"**
    - Check that Firebase environment variables are set
    - Verify your Firebase project is active
+   - Ensure Realtime Database is created
 
-2. **"Authentication failed"**
-   - Clear browser cache and cookies
-   - Verify your Firebase credentials are correct
+2. **"Voice recording not working"**
+   - Check that Whisper API key is set
+   - Verify microphone permissions
+   - Check browser console for errors
 
 3. **"App won't load"**
+   - Verify your Firebase credentials are correct
    - Check that all dependencies are installed
-   - Verify Node.js version is 16 or higher
+   - Clear browser cache and try again
 
-### Support
+## Costs
 
-- **Documentation**: See [SETUP.md](SETUP.md) for detailed setup
-- **Issues**: Create an issue on GitHub
-- **Firebase**: Free tier (1GB database, 10GB bandwidth) 
+- **Firebase**: Free tier (1GB database, 10GB bandwidth)
+- **Vercel**: Free tier (100GB bandwidth)
+- **Whisper API**: Pay per use (very cheap)
+- **Total**: ~$0-5/month for personal use
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details. 

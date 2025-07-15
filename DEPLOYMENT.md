@@ -1,174 +1,239 @@
 # Deployment Guide
 
-This guide will help you deploy your journal app to production so you can access it from any device.
+This guide will help you deploy your HFL journal app to Vercel with Firebase Realtime Database.
 
 ## Prerequisites
 
-- **GitHub account** - For code storage
-- **Vercel account** - Free hosting at [vercel.com](https://vercel.com)
-- **Firebase project** - Already set up from [SETUP.md](SETUP.md)
+- Firebase project with Realtime Database set up
+- GitHub repository with your code
+- Vercel account (free at [vercel.com](https://vercel.com))
 
 ## Step 1: Prepare Your Code
 
-1. **Ensure all changes are committed:**
+### 1. **Ensure Environment Variables are Set**
+Make sure your `.env.local` file has all required variables:
+
+```env
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
+# Whisper API (for voice transcription)
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+### 2. **Test Locally**
+```bash
+npm run dev
+```
+Make sure everything works on localhost:3000
+
+### 3. **Commit and Push**
 ```bash
 git add .
 git commit -m "Ready for deployment"
-git push
-```
-
-2. **Verify your Firebase configuration** is working locally:
-```bash
-npm run dev
-# Test that entries save to Firebase
+git push origin main
 ```
 
 ## Step 2: Deploy to Vercel
 
-### Option A: Deploy from GitHub (Recommended)
+### 1. **Connect to Vercel**
+- Go to [vercel.com](https://vercel.com)
+- Sign in with GitHub
+- Click "New Project"
+- Import your GitHub repository
 
-1. **Go to Vercel:**
-   - Visit [vercel.com](https://vercel.com)
-   - Sign in with your GitHub account
+### 2. **Configure Project**
+- **Framework Preset**: Next.js
+- **Root Directory**: `./` (default)
+- **Build Command**: `npm run build` (default)
+- **Output Directory**: `.next` (default)
+- **Install Command**: `npm install` (default)
 
-2. **Import your repository:**
-   - Click "New Project"
-   - Select your GitHub repository
-   - Click "Import"
+### 3. **Add Environment Variables**
+In the Vercel project settings, add these environment variables:
 
-3. **Configure environment variables:**
-   - In the project settings, go to "Environment Variables"
-   - Add each Firebase variable:
-     - `NEXT_PUBLIC_FIREBASE_API_KEY`
-     - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-     - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-     - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-     - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-     - `NEXT_PUBLIC_FIREBASE_APP_ID`
-
-4. **Deploy:**
-   - Click "Deploy"
-   - Wait for build to complete
-   - Your app is now live!
-
-### Option B: Deploy from CLI
-
-1. **Install Vercel CLI:**
-```bash
-npm i -g vercel
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-2. **Deploy:**
-```bash
-vercel
+### 4. **Deploy**
+Click "Deploy" and wait for the build to complete.
+
+## Step 3: Configure Firebase
+
+### 1. **Update Firebase Rules**
+In your Firebase Console, go to Realtime Database → Rules and set:
+
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
 ```
 
-3. **Follow the prompts** to configure your project
+**Note**: This allows public read/write access. For production, implement proper authentication.
 
-## Step 3: Configure Custom Domain (Optional)
-
-1. **In Vercel dashboard:**
-   - Go to your project settings
-   - Click "Domains"
-   - Add your custom domain
-
-2. **Configure DNS:**
-   - Follow Vercel's DNS instructions
-   - Wait for DNS propagation (up to 24 hours)
+### 2. **Add Domain to Firebase**
+- Go to Firebase Console → Authentication → Settings
+- Add your Vercel domain to "Authorized domains"
+- Format: `your-app.vercel.app`
 
 ## Step 4: Test Your Deployment
 
-1. **Test basic functionality:**
-   - Create a journal entry
-   - Verify it saves to Firebase
-   - Check that it appears in your basket
+### 1. **Check Basic Functionality**
+- Visit your Vercel URL
+- Create a test journal entry
+- Verify it saves to Firebase Realtime Database
 
-2. **Test cross-device sync:**
-   - Open the app on your phone
-   - Create an entry
-   - Check that it appears on your computer
+### 2. **Test Voice Recording**
+- Try the voice recording feature
+- Verify transcription works
+- Check that entries are saved
 
-3. **Test authentication:**
-   - Log in from different devices
-   - Verify your data is synced
+### 3. **Test Cross-Device Sync**
+- Open the app on another device
+- Verify entries appear
+- Test real-time updates
 
-## Production Features
+## Step 5: Custom Domain (Optional)
 
-1. **Database Syncing**: Uses Firebase database to sync data across multiple devices
-2. **Real-time Updates**: Changes appear instantly across all devices
-3. **Secure Storage**: All data encrypted and stored securely
-4. **Mobile Optimized**: Works perfectly on phones and tablets
-5. **Offline Support**: Works even without internet connection
-6. **Automatic Updates**: Deployments happen automatically when you push to GitHub
+### 1. **Add Custom Domain**
+- In Vercel, go to Settings → Domains
+- Add your custom domain
+- Follow DNS configuration instructions
 
-## Environment Variables
-
-Make sure these are set in your Vercel project:
-- `NEXT_PUBLIC_FIREBASE_API_KEY` - Your Firebase API key
-- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` - Your Firebase auth domain
-- `NEXT_PUBLIC_FIREBASE_PROJECT_ID` - Your Firebase project ID
-- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` - Your Firebase storage bucket
-- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` - Your Firebase messaging sender ID
-- `NEXT_PUBLIC_FIREBASE_APP_ID` - Your Firebase app ID
-
-## Monitoring and Maintenance
-
-### Vercel Analytics
-- Monitor your app's performance
-- Track user engagement
-- Identify issues quickly
-
-### Firebase Console
-- Monitor database usage
-- Check authentication logs
-- Manage your data
-
-### Automatic Deployments
-- Every push to GitHub triggers a new deployment
-- No manual intervention needed
-- Rollback to previous versions if needed
-
-## Cost Breakdown
-
-- **Vercel**: Free tier (unlimited deployments, 100GB bandwidth)
-- **Firebase**: Free tier (1GB database, 10GB bandwidth)
-- **Total**: $0/month for personal use
+### 2. **Update Firebase**
+- Add your custom domain to Firebase authorized domains
+- Update any hardcoded URLs in your code
 
 ## Troubleshooting
 
-### Deployment Issues
-1. **Build fails:**
-   - Check that all dependencies are in `package.json`
-   - Verify environment variables are set
-   - Check build logs in Vercel dashboard
+### Common Deployment Issues:
 
-2. **App won't load:**
-   - Verify Firebase configuration is correct
-   - Check that Firestore database is created
-   - Test locally first
+1. **"Build failed"**
+   - Check that all dependencies are in package.json
+   - Verify TypeScript compilation
+   - Check build logs for specific errors
 
-3. **Database connection fails:**
-   - Verify Firebase environment variables in Vercel
-   - Check that your Firebase project is active
-   - Ensure Firestore is in test mode
+2. **"Environment variables missing"**
+   - Verify all variables are set in Vercel
+   - Check variable names match exactly
+   - Ensure no extra spaces or quotes
 
-### Performance Issues
-1. **Slow loading:**
-   - Enable Vercel's edge caching
-   - Optimize images and assets
-   - Use Firebase's offline persistence
+3. **"Firebase connection failed"**
+   - Verify Firebase project is active
+   - Check that Realtime Database is created
+   - Ensure Realtime Database is in test mode
+   - Verify environment variables are correct
 
-2. **High costs:**
-   - Monitor Firebase usage in console
-   - Set up billing alerts
-   - Optimize database queries
+4. **"Voice recording not working"**
+   - Check OPENAI_API_KEY is set
+   - Verify API key has sufficient credits
+   - Test API key separately
 
-## Security Best Practices
+### Environment Variables Checklist:
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_DATABASE_URL`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
+- `OPENAI_API_KEY`
 
-1. **Environment Variables**: Never commit secrets to GitHub
-2. **Firebase Rules**: Set up proper security rules for production
-3. **HTTPS**: Vercel provides automatic HTTPS
-4. **Authentication**: Use Firebase Auth for user management
-5. **Data Backup**: Firebase provides automatic backups
+## Security Considerations
 
-Your journal app is now deployed and ready for production use! 
+### For Production:
+
+1. **Implement Authentication**
+   - Add Firebase Auth
+   - Restrict database access to authenticated users
+   - Update Firebase rules accordingly
+
+2. **Secure Database Rules**
+   ```json
+   {
+     "rules": {
+       "journal_entries": {
+         "$uid": {
+           ".read": "auth != null && auth.uid == $uid",
+           ".write": "auth != null && auth.uid == $uid"
+         }
+       }
+     }
+   }
+   ```
+
+3. **HTTPS Only**
+   - Vercel provides HTTPS by default
+   - Ensure all API calls use HTTPS
+
+4. **Rate Limiting**
+   - Consider adding rate limiting for API endpoints
+   - Monitor usage to prevent abuse
+
+## Monitoring
+
+### 1. **Vercel Analytics**
+- Enable Vercel Analytics for performance monitoring
+- Track page views and user behavior
+
+### 2. **Firebase Console**
+- Monitor Realtime Database usage
+- Check for errors in Firebase logs
+- Track API usage and costs
+
+### 3. **Error Tracking**
+- Consider adding error tracking (Sentry, LogRocket)
+- Monitor for JavaScript errors in production
+
+## Cost Optimization
+
+### 1. **Firebase Usage**
+- Monitor Realtime Database reads/writes
+- Stay within free tier limits
+- Optimize queries to reduce usage
+
+### 2. **Whisper API**
+- Monitor API usage
+- Consider caching transcriptions
+- Set up usage alerts
+
+### 3. **Vercel**
+- Free tier includes 100GB bandwidth
+- Monitor usage in Vercel dashboard
+
+## Updates and Maintenance
+
+### 1. **Automatic Deployments**
+- Vercel automatically deploys on git push
+- Test changes locally before pushing
+
+### 2. **Database Backups**
+- Firebase Realtime Database has built-in backup
+- Consider exporting data periodically
+
+### 3. **Security Updates**
+- Keep dependencies updated
+- Monitor for security vulnerabilities
+- Update Firebase rules as needed
+
+Your journal app is now deployed and ready to use! 🎉 
