@@ -260,6 +260,12 @@ export default function Home() {
       console.log('Skipping tag generation, going straight to database...')
       
       console.log('Calling JournalService.createEntry...')
+      
+      // Check environment variables before calling the service
+      console.log('Environment check:')
+      console.log('- NEXT_PUBLIC_SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.log('- NEXT_PUBLIC_SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+      
       const result = await JournalService.createEntry(textEntry.trim(), 'text', [])
       console.log('JournalService.createEntry returned:', result)
       
