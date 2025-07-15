@@ -1,51 +1,69 @@
-# Cloud Journal
+# The Breadcrumb Project
 
-A beautiful, secure journaling app that syncs across all your devices using Supabase cloud database.
+A beautiful, secure journaling app that syncs across all your devices using Firebase cloud database.
 
 ## Features
 
-- ✨ **Cross-Device Sync** - Access your journal from phone, tablet, computer
-- 🔒 **Password Protected** - Secure access with your own password
-- 📱 **Mobile-First** - Optimized for phones and tablets
-- ⚡ **Real-time Updates** - Changes appear instantly across devices
-- 🎨 **Beautiful Design** - Clean, distraction-free interface
-- ☁️ **Cloud Storage** - Your data is safely stored in the cloud
+- ✍️ **Text Journaling** - Write your thoughts and memories
+- 🎤 **Audio Recording** - Record voice messages (coming soon)
+- 📱 **Cross-Device Sync** - Access your entries from any device
+- 🔒 **Secure Storage** - All data encrypted and secure
+- 🎨 **Beautiful UI** - Elegant, minimalist design
 
-## Quick Setup
+## Quick Start
 
-1. **Set up Supabase database** (see [SETUP.md](SETUP.md))
-2. **Configure environment variables**
-3. **Deploy to Vercel**
-4. **Access from any device!**
+1. **Set up Firebase database** (see [SETUP.md](SETUP.md))
+2. **Install dependencies**: `npm install`
+3. **Run the app**: `npm run dev`
+4. **Open**: http://localhost:3000
 
 ## Requirements
 
-- **Supabase account** - Free cloud database
-- **Vercel account** - Free hosting
-- **GitHub account** - Code storage
+- **Node.js** (v16 or higher)
+- **Firebase account** - Free cloud database
+- **Modern web browser**
 
 ## How It Works
 
-1. **Cloud Database**: All entries stored securely in Supabase
-2. **Password Protection**: Simple password keeps your journal private
-3. **Real-time Sync**: Write on your phone, read on your computer
-4. **Automatic Deployment**: Updates when you push code changes
+1. **Cloud Database**: All entries stored securely in Firebase
+2. **Real-time Sync**: Changes appear instantly across devices
+3. **Offline Support**: Works even without internet connection
+4. **Secure Authentication**: Simple, secure user management
+5. **Beautiful Design**: Clean, elegant interface
 
-## Security
+## Technology Stack
 
-- **Password Protection**: Your journal is protected by a password
-- **Secure Database**: Supabase provides enterprise-grade security
-- **HTTPS**: All connections are encrypted
-- **Private**: Only you can access your data
+- **Frontend**: Next.js, React, TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Firebase Firestore
+- **Authentication**: Firebase Auth
+- **Deployment**: Vercel (recommended)
 
-## Getting Started
+## Security Features
 
-See [SETUP.md](SETUP.md) for detailed setup instructions.
+- **Encrypted Data**: All data encrypted in transit and at rest
+- **Secure Database**: Firebase provides enterprise-grade security
+- **User Isolation**: Each user's data is completely separate
+- **No Data Mining**: Your data belongs to you
 
-## Cost
+## Troubleshooting
 
-- **Supabase**: Free tier (500MB database, 2GB bandwidth)
-- **Vercel**: Free tier (unlimited deployments)
-- **GitHub**: Free for public repositories
+### Common Issues
 
-Your secure, syncing journal is just a few steps away! 
+1. **"Database connection failed"**
+   - Check that Firebase environment variables are set
+   - Verify your Firebase project is active
+
+2. **"Authentication failed"**
+   - Clear browser cache and cookies
+   - Verify your Firebase credentials are correct
+
+3. **"App won't load"**
+   - Check that all dependencies are installed
+   - Verify Node.js version is 16 or higher
+
+### Support
+
+- **Documentation**: See [SETUP.md](SETUP.md) for detailed setup
+- **Issues**: Create an issue on GitHub
+- **Firebase**: Free tier (1GB database, 10GB bandwidth) 

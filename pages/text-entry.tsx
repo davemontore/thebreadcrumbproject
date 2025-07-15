@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { LocalStorageService, JournalEntry } from '../lib/local-storage-service'
+import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 import { SimpleAuth } from '../lib/auth'
 
 // Custom Elegant House Icon Component
@@ -39,13 +39,20 @@ export default function TextEntry() {
 
     setIsSubmitting(true)
     try {
-      const result = await LocalStorageService.createEntry(newEntry.trim())
+      console.log('TextEntry: Starting submission with text:', newEntry.trim())
+      const result = await FirebaseService.createEntry(newEntry.trim())
+      console.log('TextEntry: Firebase result:', result)
+      
       if (result) {
         setNewEntry('')
         router.push('/basket')
+      } else {
+        console.error('TextEntry: Firebase returned null result')
+        alert('Failed to save entry - please try again')
       }
-    } catch (error) {
-      console.error('Error creating entry:', error)
+    } catch (error: any) {
+      console.error('TextEntry: Error in handleSubmit:', error)
+      alert(`Error: ${error.message}`)
     } finally {
       setIsSubmitting(false)
     }

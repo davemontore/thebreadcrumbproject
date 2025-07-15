@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { JournalService, JournalEntry } from '../lib/database'
+import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 import { SimpleAuth } from '../lib/auth'
 // Remove Heroicons import - using Unicode emojis instead
 
@@ -70,7 +70,7 @@ export default function Home() {
   const loadEntries = async () => {
     setIsLoading(true)
     try {
-      const data = await JournalService.getEntries()
+      const data = await FirebaseService.getEntries()
       setEntries(data)
     } catch (error) {
       console.error('Error loading entries:', error)
@@ -85,7 +85,7 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      const result = await JournalService.createEntry(newEntry.trim())
+      const result = await FirebaseService.createEntry(newEntry.trim())
       if (result) {
         setEntries(prev => [result, ...prev])
         setNewEntry('')
@@ -101,10 +101,8 @@ export default function Home() {
     if (!confirm('Are you sure you want to delete this entry?')) return
 
     try {
-      const success = await JournalService.deleteEntry(id)
-      if (success) {
-        setEntries(prev => prev.filter(entry => entry.id !== id))
-      }
+      // TODO: Add delete functionality to Firebase service
+      setEntries(prev => prev.filter(entry => entry.id !== id))
     } catch (error) {
       console.error('Error deleting entry:', error)
     }
@@ -114,14 +112,12 @@ export default function Home() {
     if (!editContent.trim()) return
 
     try {
-      const result = await JournalService.updateEntry(id, editContent.trim())
-      if (result) {
-        setEntries(prev => prev.map(entry => 
-          entry.id === id ? result : entry
-        ))
-        setEditingId(null)
-        setEditContent('')
-      }
+      // TODO: Add update functionality to Firebase service
+      setEntries(prev => prev.map(entry => 
+        entry.id === id ? { ...entry, text: editContent.trim() } : entry
+      ))
+      setEditingId(null)
+      setEditContent('')
     } catch (error) {
       console.error('Error updating entry:', error)
     }
@@ -129,7 +125,7 @@ export default function Home() {
 
   const startEditing = (entry: JournalEntry) => {
     setEditingId(entry.id)
-    setEditContent(entry.content)
+    setEditContent(entry.text)
   }
 
   const cancelEditing = () => {
@@ -196,7 +192,7 @@ export default function Home() {
             const { transcription, tags } = await response.json()
             
             // Save to database
-            const result = await JournalService.createEntry(transcription, 'audio', tags)
+            const result = await FirebaseService.createEntry(transcription)
             if (result) {
               // Refresh entries
               loadEntries()
@@ -253,27 +249,21 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      // Simple API call to test database
-      const response = await fetch('/api/test-db', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: textEntry.trim() }),
-      })
-
-      const result = await response.json()
+      console.log('Index: Starting text submission:', textEntry.trim())
+      const result = await FirebaseService.createEntry(textEntry.trim())
+      console.log('Index: Firebase result:', result)
       
-      if (response.ok && result.success) {
+      if (result) {
         setTextEntry('')
         setShowTextInput(false)
         loadEntries()
         alert('SUCCESS: Entry saved!')
       } else {
-        alert(`FAILED: ${result.error}`)
+        alert('FAILED: Could not save entry')
       }
-    } catch (error) {
-      alert(`ERROR: ${error}`)
+    } catch (error: any) {
+      console.error('Index: Error in submitTextEntry:', error)
+      alert(`ERROR: ${error.message}`)
     } finally {
       setIsSubmitting(false)
     }

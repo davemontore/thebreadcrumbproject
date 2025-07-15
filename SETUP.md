@@ -1,131 +1,133 @@
-# Cloud Journal Setup Guide
+# Setup Guide
 
-This journal app syncs across all your devices using Supabase cloud database.
+This journal app syncs across all your devices using Firebase cloud database.
 
 ## Prerequisites
 
-1. **Supabase Account** - Free at [supabase.com](https://supabase.com)
-2. **GitHub Account** - For code storage
-3. **Vercel Account** - Free deployment at [vercel.com](https://vercel.com)
+1. **Node.js** (v16 or higher) - Download from [nodejs.org](https://nodejs.org)
+2. **Firebase Account** - Free at [firebase.google.com](https://firebase.google.com)
+3. **Git** (optional) - For version control
 
-## Step 1: Set Up Supabase Database
+## Step 1: Set Up Firebase Database
 
-1. **Create Supabase Project:**
-   - Go to [supabase.com](https://supabase.com)
-   - Click "New Project"
-   - Choose your organization
-   - Enter project name (e.g., "my-journal")
-   - Set a database password
-   - Choose a region close to you
-   - Click "Create new project"
+### 1. **Create Firebase Project:**
+- Go to [firebase.google.com](https://firebase.google.com)
+- Click "Get started" or "Create a project"
+- Name your project (e.g., "my-journal-app")
+- Follow the setup wizard
+- Choose "Start in test mode" for Firestore
 
-2. **Create Database Table:**
-   - In your Supabase dashboard, go to "SQL Editor"
-   - Run this SQL command:
-   ```sql
-   CREATE TABLE journal_entries (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     content TEXT NOT NULL,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-   ```
+### 2. **Create Firestore Database:**
+- In your Firebase project, click "Firestore Database"
+- Click "Create database"
+- Choose "Start in test mode"
+- Pick a location close to you
+- Click "Done"
 
-3. **Get Your API Keys:**
-   - Go to "Settings" → "API"
-   - Copy your "Project URL"
-   - Copy your "anon public" key
+### 3. **Get Firebase Config:**
+- Click the gear icon → "Project settings"
+- Scroll down to "Your apps"
+- Click the web icon (</>)
+- Register your app with any name
+- Copy the config object
 
 ## Step 2: Configure Environment Variables
 
-1. **Create `.env.local` file:**
-   ```bash
-   cp env.example .env.local
-   ```
+1. **Create `.env.local` file** in your project root:
 
-2. **Add your Supabase credentials:**
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your_project_url_here
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-   ```
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
 
-## Step 3: Test Locally
+2. **Replace the values** with your actual Firebase config
+
+## Step 3: Install and Run
 
 1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. **Start development server:**
-   ```bash
-   npm run dev
-   ```
+2. **Start the development server:**
+```bash
+npm run dev
+```
 
-3. **Test the app:**
-   - Open `http://localhost:3000`
-   - Set up your password
-   - Create a journal entry
-   - Verify it saves to Supabase
+3. **Open your browser:**
+- Go to http://localhost:3000
+- Create your first journal entry
+- Verify it saves to Firebase
 
-## Step 4: Deploy to Vercel
+## Step 4: Deploy (Optional)
+
+### Deploy to Vercel (Recommended):
 
 1. **Push to GitHub:**
-   ```bash
-   git add .
-   git commit -m "Add cloud sync journal app"
-   git push origin main
-   ```
+```bash
+git add .
+git commit -m "Initial commit"
+git push
+```
 
 2. **Deploy to Vercel:**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your GitHub repository
-   - Add environment variables:
-     - `NEXT_PUBLIC_SUPABASE_URL`
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - Click "Deploy"
+- Go to [vercel.com](https://vercel.com)
+- Connect your GitHub repository
+- Add your environment variables
+- Deploy!
 
-3. **Your app is now live!**
-   - Access from any device
-   - All entries sync automatically
-   - Password protected
+## Features
 
-## How It Works
-
-- **Cloud Database**: All entries stored in Supabase
-- **Real-time Sync**: Changes appear instantly across devices
-- **Password Protection**: Secure access with your password
-- **Mobile Optimized**: Works great on phones and tablets
-- **Automatic Deployment**: Updates when you push to GitHub
-
-## Security Features
-
-- **Password Protection**: Your journal is protected by a password
-- **Secure Database**: Supabase provides enterprise-grade security
-- **HTTPS**: All connections are encrypted
-- **No Public Access**: Only you can access your data
+- **Text Journaling**: Write your thoughts and memories
+- **Cross-Device Sync**: Access from phone, tablet, computer
+- **Real-time Updates**: Changes appear instantly
+- **Secure Storage**: All data encrypted and secure
+- **Beautiful Design**: Clean, distraction-free interface
 
 ## Troubleshooting
 
-### App won't start
-- Check that Supabase environment variables are set
-- Verify your Supabase project is active
-- Check the browser console for errors
+### Common Issues:
 
-### Entries not syncing
-- Verify your Supabase credentials are correct
-- Check that the database table was created
-- Ensure you're using the same password on all devices
+1. **"Firebase connection failed"**
+   - Check that all environment variables are set
+   - Verify your Firebase project is active
+   - Make sure Firestore database is created
 
-### Deployment issues
-- Make sure environment variables are set in Vercel
-- Check that your GitHub repository is public or Vercel has access
-- Verify the build completes successfully
+2. **"App won't load"**
+   - Check that all dependencies are installed
+   - Verify Node.js version is 16 or higher
+   - Check browser console for errors
+
+3. **"Cannot save entries"**
+   - Verify Firebase config is correct
+   - Check that Firestore is in test mode
+   - Clear browser cache and try again
+
+### Environment Variables:
+
+Make sure these are set in your `.env.local`:
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
 
 ## Cost
 
-- **Supabase**: Free tier includes 500MB database, 2GB bandwidth
-- **Vercel**: Free tier includes unlimited deployments
-- **GitHub**: Free for public repositories
+- **Firebase**: Free tier (1GB database, 10GB bandwidth)
+- **Vercel**: Free tier (unlimited deployments)
+- **Total**: $0/month for personal use
 
-This setup gives you a professional, secure journal that syncs across all your devices! 
+## Security
+
+- **Encrypted Data**: All data encrypted in transit and at rest
+- **Secure Database**: Firebase provides enterprise-grade security
+- **User Isolation**: Each user's data is completely separate
+- **No Data Mining**: Your data belongs to you
+
+Your secure, syncing journal is ready to use! 

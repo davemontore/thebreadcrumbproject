@@ -35,7 +35,7 @@ export class FirebaseService {
         code: error.code,
         stack: error.stack
       });
-      alert(`Firebase Error: ${error.message}`);
+      // alert(`Firebase Error: ${error.message}`);
       return null;
     }
   }
@@ -61,7 +61,7 @@ export class FirebaseService {
         code: error.code,
         stack: error.stack
       });
-      alert(`Firebase Error: ${error.message}`);
+      // alert(`Firebase Error: ${error.message}`);
       return [];
     }
   }
