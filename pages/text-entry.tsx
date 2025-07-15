@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { JournalService, JournalEntry } from '../lib/database'
+import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 import { SimpleAuth } from '../lib/auth'
 
 // Custom Elegant House Icon Component
@@ -39,7 +39,7 @@ export default function TextEntry() {
 
     setIsSubmitting(true)
     try {
-      const result = await JournalService.createEntry(newEntry.trim())
+      const result = await FirebaseService.createEntry(newEntry.trim())
       if (result) {
         setNewEntry('')
         router.push('/basket')

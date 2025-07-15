@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { SimpleAuth } from '../lib/auth'
-import { JournalService, JournalEntry } from '../lib/database'
+import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 
 export default function Basket() {
   const [breadcrumbs, setBreadcrumbs] = useState<JournalEntry[]>([])
@@ -22,7 +22,7 @@ export default function Basket() {
       
       // Load breadcrumbs from database
       try {
-        const entries = await JournalService.getEntries()
+        const entries = await FirebaseService.getEntries()
         setBreadcrumbs(entries)
       } catch (error) {
         console.error('Error loading entries:', error)
@@ -106,26 +106,20 @@ export default function Basket() {
                 <div key={breadcrumb.id} className="bg-cream-5 border border-cream-10 rounded-lg p-6">
                   <div className="flex justify-between items-start mb-3">
                     <span className="text-sm text-cream-60">
-                      {new Date(breadcrumb.created_at).toLocaleDateString('en-US', { 
+                      {new Date(breadcrumb.timestamp).toLocaleDateString('en-US', { 
                         year: 'numeric', 
                         month: 'long', 
                         day: 'numeric' 
-                      })} - {new Date(breadcrumb.created_at).toLocaleTimeString('en-US', { 
+                      })} - {new Date(breadcrumb.timestamp).toLocaleTimeString('en-US', { 
                         hour: 'numeric', 
                         minute: '2-digit' 
                       })}
                     </span>
                     <div className="flex gap-2">
                       <span className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
-                        {breadcrumb.type === 'audio' ? (
-                          <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 15c1.66 0 3-1.34 3-3V7a3 3 0 1 0-6 0v5c0 1.66 1.34 3 3 3zm5-3a1 1 0 1 1 2 0c0 3.07-2.13 5.64-5 6.32V21h3a1 1 0 1 1 0 2H7a1 1 0 1 1 0-2h3v-2.68c-2.87-.68-5-3.25-5-6.32a1 1 0 1 1 2 0c0 2.76 2.24 5 5 5s5-2.24 5-5z"/>
-                          </svg>
-                        ) : (
-                          <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M16.24 3.56c-1.13-1.13-2.95-1.13-4.08 0l-7.6 7.6a2.88 2.88 0 0 0-.84 2.04c0 .77.3 1.5.84 2.04l2.12 2.12c.54.54 1.27.84 2.04.84.77 0 1.5-.3 2.04-.84l7.6-7.6c1.13-1.13 1.13-2.95 0-4.08zm-9.19 9.19l4.24 4.24M14.12 7.88l2 2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
+                        <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M16.24 3.56c-1.13-1.13-2.95-1.13-4.08 0l-7.6 7.6a2.88 2.88 0 0 0-.84 2.04c0 .77.3 1.5.84 2.04l2.12 2.12c.54.54 1.27.84 2.04.84.77 0 1.5-.3 2.04-.84l7.6-7.6c1.13-1.13 1.13-2.95 0-4.08zm-9.19 9.19l4.24 4.24M14.12 7.88l2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </span>
                       {breadcrumb.tags?.map((tag, index) => (
                         <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
@@ -138,7 +132,7 @@ export default function Basket() {
                   <div className="text-cream leading-relaxed">
                     {expandedItems.has(breadcrumb.id) ? (
                       <div>
-                        <p className="whitespace-pre-wrap">{breadcrumb.content}</p>
+                        <p className="whitespace-pre-wrap">{breadcrumb.text}</p>
                         <button
                           onClick={() => toggleExpanded(breadcrumb.id)}
                           className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
@@ -148,8 +142,8 @@ export default function Basket() {
                       </div>
                     ) : (
                       <div>
-                        <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.content)}</p>
-                        {isLongerThanPreview(breadcrumb.content) && (
+                        <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text)}</p>
+                        {isLongerThanPreview(breadcrumb.text) && (
                           <button
                             onClick={() => toggleExpanded(breadcrumb.id)}
                             className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"

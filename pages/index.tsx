@@ -253,33 +253,27 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      console.log('=== TEXT ENTRY DEBUG START ===')
-      console.log('Text to submit:', textEntry.trim())
+      // Simple API call to test database
+      const response = await fetch('/api/test-db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: textEntry.trim() }),
+      })
+
+      const result = await response.json()
       
-      // Skip tag generation for now - go straight to database
-      console.log('Skipping tag generation, going straight to database...')
-      
-      console.log('Calling JournalService.createEntry...')
-      
-      // Check environment variables before calling the service
-      console.log('Environment check:')
-      console.log('- NEXT_PUBLIC_SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.log('- NEXT_PUBLIC_SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-      
-      const result = await JournalService.createEntry(textEntry.trim(), 'text', [])
-      console.log('JournalService.createEntry returned:', result)
-      
-      if (result) {
-        console.log('SUCCESS: Entry created, clearing form...')
+      if (response.ok && result.success) {
         setTextEntry('')
         setShowTextInput(false)
         loadEntries()
+        alert('SUCCESS: Entry saved!')
       } else {
-        console.error('FAILED: JournalService.createEntry returned null')
+        alert(`FAILED: ${result.error}`)
       }
-      console.log('=== TEXT ENTRY DEBUG END ===')
     } catch (error) {
-      console.error('ERROR in submitTextEntry:', error)
+      alert(`ERROR: ${error}`)
     } finally {
       setIsSubmitting(false)
     }
