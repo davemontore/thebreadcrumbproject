@@ -77,7 +77,8 @@ export class WhisperService {
       })
 
       const title = response.choices[0]?.message?.content || ''
-      return title.trim()
+      // Remove any quotes from the beginning and end of the title
+      return title.trim().replace(/^["']|["']$/g, '')
     } catch (error) {
       console.error('Error generating title:', error)
       return ''
