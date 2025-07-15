@@ -56,6 +56,14 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [textEntry, setTextEntry] = useState('')
+  const [textTitle, setTextTitle] = useState('')
+  const [audioTitle, setAudioTitle] = useState('')
+  const [isRecording, setIsRecording] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [showTextInput, setShowTextInput] = useState(false)
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([])
   const router = useRouter()
 
   // Check authentication and load entries on component mount
@@ -157,13 +165,6 @@ export default function Home() {
     }
   }
 
-  const [isRecording, setIsRecording] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [showTextInput, setShowTextInput] = useState(false)
-  const [textEntry, setTextEntry] = useState('')
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([])
-
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -189,10 +190,10 @@ export default function Home() {
           })
 
           if (response.ok) {
-            const { transcription, tags, title } = await response.json()
+            const { transcription, tags } = await response.json()
             
             // Save to database
-            const result = await FirebaseService.createEntry(transcription, title, tags)
+            const result = await FirebaseService.createEntry(transcription, audioTitle.trim(), tags)
             if (result) {
               // Refresh entries
               loadEntries()
@@ -251,7 +252,7 @@ export default function Home() {
     try {
       console.log('Index: Starting text submission:', textEntry.trim())
       
-      // Generate title and tags for text entry
+      // Generate tags for text entry
       const response = await fetch('/api/generate-tags', {
         method: 'POST',
         headers: {
@@ -260,20 +261,19 @@ export default function Home() {
         body: JSON.stringify({ text: textEntry.trim() }),
       })
 
-      let title = ''
       let tags: string[] = []
       
       if (response.ok) {
-        const { title: generatedTitle, tags: generatedTags } = await response.json()
-        title = generatedTitle
+        const { tags: generatedTags } = await response.json()
         tags = generatedTags
       }
 
-      const result = await FirebaseService.createEntry(textEntry.trim(), title, tags)
+      const result = await FirebaseService.createEntry(textEntry.trim(), textTitle.trim(), tags)
       console.log('Index: Firebase result:', result)
       
       if (result) {
         setTextEntry('')
+        setTextTitle('')
         setShowTextInput(false)
         loadEntries()
         alert('SUCCESS: Entry saved!')
@@ -290,6 +290,7 @@ export default function Home() {
 
   const cancelTextEntry = () => {
     setTextEntry('')
+    setTextTitle('')
     setShowTextInput(false)
   }
 
@@ -335,12 +336,21 @@ export default function Home() {
               {/* Audio Recording Section */}
               <div className="flex flex-col items-center">
                 {!isRecording ? (
-                                  <div className="group cursor-pointer" onClick={startRecording}>
-                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Unicode Microphone Emoji */}
-                    <ModernMicrophoneIcon className="text-[3rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                  <div className="flex flex-col items-center space-y-4">
+                    <input
+                      type="text"
+                      value={audioTitle}
+                      onChange={(e) => setAudioTitle(e.target.value)}
+                      placeholder="Title for your audio entry (optional)"
+                      className="w-64 p-2 border border-cream-30 rounded bg-cream-10 text-cream text-center"
+                    />
+                    <div className="group cursor-pointer" onClick={startRecording}>
+                      <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                        {/* Unicode Microphone Emoji */}
+                        <ModernMicrophoneIcon className="text-[3rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                      </div>
+                    </div>
                   </div>
-                </div>
                 ) : (
                   <div className="text-center">
                     <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -387,6 +397,13 @@ export default function Home() {
                 </div>
                 ) : (
                   <div className="w-full max-w-2xl">
+                    <input
+                      type="text"
+                      value={textTitle}
+                      onChange={(e) => setTextTitle(e.target.value)}
+                      placeholder="Title for your entry (optional)"
+                      className="w-full p-3 border border-cream-30 rounded-xl bg-cream-10 text-cream mb-4 text-center"
+                    />
                     <textarea
                       value={textEntry}
                       onChange={(e) => setTextEntry(e.target.value)}

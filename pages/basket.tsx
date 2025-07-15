@@ -77,7 +77,7 @@ export default function Basket() {
 
     setIsSubmitting(true)
     try {
-      // Generate new title and tags for the edited text
+      // Generate new tags for the edited text
       const response = await fetch('/api/generate-tags', {
         method: 'POST',
         headers: {
@@ -86,16 +86,14 @@ export default function Basket() {
         body: JSON.stringify({ text: editText.trim() }),
       })
 
-      let newTitle = ''
       let newTags: string[] = []
       
       if (response.ok) {
-        const { title: generatedTitle, tags: generatedTags } = await response.json()
-        newTitle = generatedTitle
+        const { tags: generatedTags } = await response.json()
         newTags = generatedTags
       }
 
-      const success = await FirebaseService.updateEntry(editingId, editText.trim(), newTitle, newTags)
+      const success = await FirebaseService.updateEntry(editingId, editText.trim(), editTitle.trim(), newTags)
       
       if (success) {
         // Refresh entries
@@ -174,36 +172,6 @@ export default function Basket() {
             <div className="space-y-4">
               {breadcrumbs.map((breadcrumb) => (
                 <div key={breadcrumb.id} className="bg-cream-5 border border-cream-10 rounded-lg p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-sm text-cream-60">
-                      {new Date(breadcrumb.timestamp).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })} - {new Date(breadcrumb.timestamp).toLocaleTimeString('en-US', { 
-                        hour: 'numeric', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => startEditing(breadcrumb)}
-                        className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      {breadcrumb.tags && breadcrumb.tags.length > 0 ? (
-                        breadcrumb.tags.map((tag, index) => (
-                          <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
-                            {tag}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-cream-40">No tags</span>
-                      )}
-                    </div>
-                  </div>
-                  
                   {editingId === breadcrumb.id ? (
                     <div className="space-y-4">
                       <input
@@ -237,34 +205,66 @@ export default function Basket() {
                     </div>
                   ) : (
                     <>
+                      {/* Title at the top */}
                       {breadcrumb.title && (
-                        <h3 className="text-lg font-semibold text-cream mb-3">{breadcrumb.title}</h3>
+                        <h3 className="text-lg font-semibold text-cream mb-2">{breadcrumb.title}</h3>
                       )}
                       
-                      <div className="text-cream leading-relaxed">
-                        {expandedItems.has(breadcrumb.id) ? (
-                          <div>
-                            <p className="whitespace-pre-wrap">{breadcrumb.text}</p>
-                            <button
-                              onClick={() => toggleExpanded(breadcrumb.id)}
-                              className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
-                            >
-                              See Less
-                            </button>
-                          </div>
-                        ) : (
-                          <div>
-                            <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text, isMobile)}</p>
-                            {isLongerThanPreview(breadcrumb.text, isMobile) && (
-                              <button
-                                onClick={() => toggleExpanded(breadcrumb.id)}
-                                className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
-                              >
-                                See More
-                              </button>
+                      {/* Date underneath title */}
+                      <div className="text-sm text-cream-60 mb-3">
+                        {new Date(breadcrumb.timestamp).toLocaleDateString('en-US', { 
+                          day: '2-digit',
+                          month: '2-digit', 
+                          year: 'numeric'
+                        })}
+                      </div>
+                      
+                      {/* Tags below date */}
+                      {breadcrumb.tags && breadcrumb.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {breadcrumb.tags.slice(0, 4).map((tag, index) => (
+                            <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Edit button and entry text */}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="text-cream leading-relaxed">
+                            {expandedItems.has(breadcrumb.id) ? (
+                              <div>
+                                <p className="whitespace-pre-wrap">{breadcrumb.text}</p>
+                                <button
+                                  onClick={() => toggleExpanded(breadcrumb.id)}
+                                  className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                                >
+                                  See Less
+                                </button>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text, isMobile)}</p>
+                                {isLongerThanPreview(breadcrumb.text, isMobile) && (
+                                  <button
+                                    onClick={() => toggleExpanded(breadcrumb.id)}
+                                    className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                                  >
+                                    See More
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
+                        </div>
+                        <button
+                          onClick={() => startEditing(breadcrumb)}
+                          className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors ml-2 flex-shrink-0"
+                        >
+                          Edit
+                        </button>
                       </div>
                     </>
                   )}

@@ -39,11 +39,11 @@ export class WhisperService {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that generates relevant hashtags for journal entries. Generate 3-5 relevant hashtags based on the content. Return only the hashtags, separated by commas, no additional text.'
+            content: 'You are a helpful assistant that generates relevant tags for journal entries. Focus on: 1) People\'s names mentioned, 2) Main themes or topics discussed, 3) Key events or activities. Generate 2-4 relevant tags. Return only the tags, separated by commas, no additional text or hashtags.'
           },
           {
             role: 'user',
-            content: `Generate hashtags for this journal entry: "${text}"`
+            content: `Generate tags for this journal entry: "${text}"`
           }
         ],
         max_tokens: 50,
@@ -51,37 +51,11 @@ export class WhisperService {
       })
 
       const tagsText = response.choices[0]?.message?.content || ''
-      return tagsText.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      const tags = tagsText.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      return tags.slice(0, 4) // Limit to 4 tags maximum
     } catch (error) {
       console.error('Error generating tags:', error)
       return []
-    }
-  }
-
-  static async generateTitle(text: string): Promise<string> {
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant that generates concise, meaningful titles for journal entries. Create a title that captures the essence of the entry in 3-8 words. Return only the title, no additional text or quotes.'
-          },
-          {
-            role: 'user',
-            content: `Generate a title for this journal entry: "${text}"`
-          }
-        ],
-        max_tokens: 30,
-        temperature: 0.3,
-      })
-
-      const title = response.choices[0]?.message?.content || ''
-      // Remove any quotes from the beginning and end of the title
-      return title.trim().replace(/^["']|["']$/g, '')
-    } catch (error) {
-      console.error('Error generating title:', error)
-      return ''
     }
   }
 } 

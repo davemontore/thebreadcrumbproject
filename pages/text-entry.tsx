@@ -41,7 +41,7 @@ export default function TextEntry() {
     try {
       console.log('TextEntry: Starting submission with text:', newEntry.trim())
       
-      // Generate title and tags for text entry
+      // Generate tags for text entry
       const response = await fetch('/api/generate-tags', {
         method: 'POST',
         headers: {
@@ -50,16 +50,14 @@ export default function TextEntry() {
         body: JSON.stringify({ text: newEntry.trim() }),
       })
 
-      let title = ''
       let tags: string[] = []
       
       if (response.ok) {
-        const { title: generatedTitle, tags: generatedTags } = await response.json()
-        title = generatedTitle
+        const { tags: generatedTags } = await response.json()
         tags = generatedTags
       }
 
-      const result = await FirebaseService.createEntry(newEntry.trim(), title, tags)
+      const result = await FirebaseService.createEntry(newEntry.trim(), '', tags)
       console.log('TextEntry: Firebase result:', result)
       
       if (result) {
