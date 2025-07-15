@@ -10,16 +10,23 @@ export interface JournalEntry {
   tags?: string[]
 }
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-// Only create client if environment variables are available
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
+// Helper function to create Supabase client
+const createSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn('Supabase environment variables not found')
+    return null
+  }
+  
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 export class JournalService {
   // Get all journal entries
   static async getEntries(): Promise<JournalEntry[]> {
+    const supabase = createSupabaseClient()
     if (!supabase) {
       console.warn('Supabase not configured, returning empty entries')
       return []
@@ -46,9 +53,11 @@ export class JournalService {
   // Create a new journal entry
   static async createEntry(content: string, type: 'audio' | 'text' = 'text', tags: string[] = []): Promise<JournalEntry | null> {
     console.log('JournalService.createEntry called with:', { content, type, tags })
+    
+    const supabase = createSupabaseClient()
     console.log('Supabase client exists:', !!supabase)
-    console.log('Supabase URL:', supabaseUrl)
-    console.log('Supabase Key exists:', !!supabaseKey)
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
     
     if (!supabase) {
       console.warn('Supabase not configured, cannot create entry')
@@ -77,6 +86,7 @@ export class JournalService {
 
   // Update a journal entry
   static async updateEntry(id: string, content: string): Promise<JournalEntry | null> {
+    const supabase = createSupabaseClient()
     if (!supabase) {
       console.warn('Supabase not configured, cannot update entry')
       return null
@@ -104,6 +114,7 @@ export class JournalService {
 
   // Delete a journal entry
   static async deleteEntry(id: string): Promise<boolean> {
+    const supabase = createSupabaseClient()
     if (!supabase) {
       console.warn('Supabase not configured, cannot delete entry')
       return false
@@ -129,6 +140,7 @@ export class JournalService {
 
   // Subscribe to real-time updates
   static subscribeToEntries(callback: (entry: JournalEntry) => void) {
+    const supabase = createSupabaseClient()
     if (!supabase) {
       console.warn('Supabase not configured, cannot subscribe to entries')
       return null
@@ -143,7 +155,7 @@ export class JournalService {
           schema: 'public',
           table: 'journal_entries'
         },
-        (payload) => {
+        (payload: any) => {
           if (payload.eventType === 'INSERT') {
             callback(payload.new as JournalEntry)
           }
