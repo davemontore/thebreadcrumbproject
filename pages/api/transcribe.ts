@@ -40,7 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'No audio data received' })
         }
 
-        const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' })
+        // For FormData, we'll use webm as the default format since that's what we're sending
+        const audioType = 'audio/webm'
+        console.log('Transcribe API: Using audio type:', audioType)
+        
+        const audioBlob = new Blob([audioBuffer], { type: audioType })
         console.log('Transcribe API: Audio blob created, size:', audioBlob.size)
 
         // Transcribe audio
@@ -72,6 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(500).json({ error: 'Invalid OpenAI API key' })
           } else if (error.message.includes('quota')) {
             res.status(500).json({ error: 'OpenAI API quota exceeded' })
+          } else if (error.message.includes('Invalid audio format')) {
+            res.status(500).json({ error: 'Invalid audio format. Please try recording again.' })
           } else {
             res.status(500).json({ error: `Transcription failed: ${error.message}` })
           }
