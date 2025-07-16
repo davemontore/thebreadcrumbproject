@@ -13,16 +13,25 @@ export class WhisperService {
         throw new Error('OpenAI API key not configured')
       }
 
+      // Validate the audio blob
+      if (audioBlob.size === 0) {
+        throw new Error('Audio blob is empty')
+      }
+
+      if (audioBlob.size > 25 * 1024 * 1024) {
+        throw new Error('Audio file is too large (max 25MB)')
+      }
+
       // Check if the blob has a valid audio type
       if (!audioBlob.type || !audioBlob.type.startsWith('audio/')) {
-        console.warn('WhisperService: Blob has invalid type:', audioBlob.type, 'forcing audio/wav')
+        console.warn('WhisperService: Blob has invalid type:', audioBlob.type, 'forcing audio/webm')
         // Recreate the blob with proper type
-        audioBlob = new Blob([audioBlob], { type: 'audio/wav' })
+        audioBlob = new Blob([audioBlob], { type: 'audio/webm' })
       }
 
       // Convert blob to file-like object
       const formData = new FormData()
-      formData.append('file', audioBlob, 'audio.wav')
+      formData.append('file', audioBlob, 'audio.webm')
       formData.append('model', 'whisper-1')
 
       console.log('WhisperService: Sending request to OpenAI with blob type:', audioBlob.type)

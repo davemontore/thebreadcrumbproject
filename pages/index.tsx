@@ -192,7 +192,7 @@ export default function Home() {
       // Use RecordRTC for better browser compatibility
       const recordRTC = new RecordRTC(stream, {
         type: 'audio',
-        mimeType: 'audio/wav',
+        mimeType: 'audio/webm',
         recorderType: RecordRTC.StereoAudioRecorder,
         numberOfAudioChannels: 1,
         desiredSampRate: 44100,
@@ -236,7 +236,7 @@ export default function Home() {
     
     // Send to API for transcription
     const formData = new FormData()
-    formData.append('audio', audioBlob, 'recording.mp3')
+    formData.append('audio', audioBlob, 'recording.webm')
 
     try {
       console.log('Sending audio to transcription API...')

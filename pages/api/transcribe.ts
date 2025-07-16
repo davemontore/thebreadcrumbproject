@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { WhisperService } from '../../lib/whisper'
+import formidable, { Fields, Files } from 'formidable'
 
 export const config = {
   api: {
@@ -21,27 +22,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log('Transcribe API: Starting audio processing...')
     
-    // Get the audio data from the request
-    const chunks: Buffer[] = []
-    
-    req.on('data', (chunk: Buffer) => {
-      chunks.push(chunk)
+    // Parse FormData using formidable
+    const form = formidable({
+      maxFileSize: 25 * 1024 * 1024, // 25MB max
+      allowEmptyFiles: false,
     })
 
-    req.on('end', async () => {
+    form.parse(req, async (err: any, fields: Fields, files: Files) => {
+      if (err) {
+        console.error('Transcribe API: Form parsing error:', err)
+        return res.status(400).json({ error: 'Failed to parse form data' })
+      }
+
       try {
-        console.log('Transcribe API: Received audio data, chunks:', chunks.length)
-        
-        const audioBuffer = Buffer.concat(chunks)
-        console.log('Transcribe API: Audio buffer size:', audioBuffer.length)
-        
-        if (audioBuffer.length === 0) {
-          console.error('Transcribe API: No audio data received')
-          return res.status(400).json({ error: 'No audio data received' })
+        console.log('Transcribe API: Form parsed successfully')
+        console.log('Transcribe API: Fields:', fields)
+        console.log('Transcribe API: Files:', files)
+
+        const audioFile = files.audio
+        if (!audioFile || Array.isArray(audioFile) && audioFile.length === 0) {
+          console.error('Transcribe API: No audio file found in request')
+          return res.status(400).json({ error: 'No audio file provided' })
         }
 
-        // For FormData, we'll use the format that was sent
-        const audioType = 'audio/wav' // RecordRTC is sending WAV
+        // Handle both single file and array of files
+        const file = Array.isArray(audioFile) ? audioFile[0] : audioFile
+        
+        console.log('Transcribe API: Audio file details:', {
+          originalName: file.originalFilename,
+          size: file.size,
+          mimetype: file.mimetype,
+          filepath: file.filepath
+        })
+
+        if (!file.size || file.size === 0) {
+          console.error('Transcribe API: Audio file is empty')
+          return res.status(400).json({ error: 'Audio file is empty' })
+        }
+
+        // Read the file
+        const fs = require('fs')
+        const audioBuffer = fs.readFileSync(file.filepath)
+        console.log('Transcribe API: Audio buffer size:', audioBuffer.length)
+
+        // Create blob with proper type
+        const audioType = file.mimetype || 'audio/webm'
         console.log('Transcribe API: Using audio type:', audioType)
         
         const audioBlob = new Blob([audioBuffer], { type: audioType })
@@ -88,10 +113,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     })
 
-    req.on('error', (error) => {
-      console.error('Transcribe API: Request error:', error)
-      res.status(500).json({ error: 'Request error' })
-    })
   } catch (error) {
     console.error('Transcribe API: Error handling request:', error)
     res.status(500).json({ error: 'Internal server error' })
