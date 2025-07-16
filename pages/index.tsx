@@ -185,37 +185,17 @@ export default function Home() {
       })
       console.log('Audio stream obtained successfully')
       
-      // Check if we're on mobile and use a different approach
+      // Check if we're on mobile
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       console.log('Mobile detection:', isMobile)
       
-      if (isMobile) {
-        console.log('Using mobile-optimized recording approach')
-        await startMobileRecording(stream)
-        return
-      }
+      // Use MP3 format for maximum compatibility
+      let mimeType = 'audio/mp3'
       
-      // For desktop, try to find the best supported format
-      let mimeType = ''
-      const supportedTypes = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/mp4',
-        'audio/wav',
-        'audio/ogg;codecs=opus',
-        'audio/ogg'
-      ]
-      
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type
-          break
-        }
-      }
-      
-      if (!mimeType) {
-        console.log('No specific format supported, using browser default')
-        mimeType = ''
+      // Check if MP3 is supported, fallback to webm if not
+      if (!MediaRecorder.isTypeSupported('audio/mp3')) {
+        console.log('MP3 not supported, falling back to webm')
+        mimeType = 'audio/webm'
       }
       
       console.log('Using MIME type:', mimeType)
@@ -229,7 +209,7 @@ export default function Home() {
       let dataTimeout: NodeJS.Timeout
       
       recorder.ondataavailable = (event) => {
-        console.log('Audio data available, size:', event.data.size)
+        console.log('Audio data available, size:', event.data.size, 'type:', event.data.type)
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data)
           console.log('Added audio chunk, total chunks:', audioChunksRef.current.length)
@@ -269,9 +249,9 @@ export default function Home() {
           return
         }
         
-        // Create blob with the detected format
-        const audioBlob = new Blob(currentChunks, { type: mimeType || 'audio/webm' })
-        console.log('Audio blob created, size:', audioBlob.size, 'type:', mimeType || 'audio/webm')
+        // Create blob with MP3 format
+        const audioBlob = new Blob(currentChunks, { type: mimeType })
+        console.log('Audio blob created, size:', audioBlob.size, 'type:', mimeType)
         
         if (audioBlob.size === 0) {
           alert('No audio data was recorded. This might be a browser compatibility issue. Please try using Chrome or Safari.')
@@ -318,117 +298,6 @@ export default function Home() {
     }
   }
 
-  // Mobile-optimized recording method
-  const startMobileRecording = async (stream: MediaStream) => {
-    try {
-      console.log('Starting mobile-optimized recording...')
-      
-      // For mobile, we'll use a simpler approach that's more reliable
-      const recorder = new MediaRecorder(stream, { 
-        mimeType: 'audio/webm', // Force webm for mobile
-        audioBitsPerSecond: 128000
-      })
-      
-      recorder.ondataavailable = (event) => {
-        console.log('Mobile: Audio data available, size:', event.data.size)
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-          console.log('Mobile: Added audio chunk, total chunks:', audioChunksRef.current.length)
-        }
-      }
-
-      recorder.onstop = async () => {
-        console.log('Mobile: Recording stopped, processing audio...')
-        
-        const currentChunks = [...audioChunksRef.current]
-        console.log('Mobile: Final audio chunks count:', currentChunks.length)
-        
-        if (currentChunks.length === 0) {
-          alert('No audio data was recorded. Please try again.')
-          stream.getTracks().forEach(track => track.stop())
-          audioChunksRef.current = []
-          return
-        }
-        
-        // For mobile, always use webm format
-        const audioBlob = new Blob(currentChunks, { type: 'audio/webm' })
-        console.log('Mobile: Audio blob created, size:', audioBlob.size, 'type: audio/webm')
-        
-        if (audioBlob.size === 0) {
-          alert('No audio data was recorded. Please try again.')
-          stream.getTracks().forEach(track => track.stop())
-          audioChunksRef.current = []
-          return
-        }
-        
-        await processAudioBlob(audioBlob)
-        
-        stream.getTracks().forEach(track => track.stop())
-        audioChunksRef.current = []
-      }
-
-      recorder.onerror = (event) => {
-        console.error('Mobile: MediaRecorder error:', event)
-        alert('ERROR: Recording failed. Please try again.')
-        stream.getTracks().forEach(track => track.stop())
-        audioChunksRef.current = []
-      }
-
-      setMediaRecorder(recorder)
-      recorder.start(1000) // Start with 1-second timeslices
-      setIsRecording(true)
-      setIsPaused(false)
-      console.log('Mobile: Recording started successfully')
-      
-    } catch (error) {
-      console.error('Mobile recording failed:', error)
-      alert('Mobile recording failed. Please try using Chrome or Safari.')
-      stream.getTracks().forEach(track => track.stop())
-    }
-  }
-
-  // Helper function to convert audio buffer to WAV
-  const audioBufferToWav = (buffer: AudioBuffer): Blob => {
-    const length = buffer.length
-    const numberOfChannels = buffer.numberOfChannels
-    const sampleRate = buffer.sampleRate
-    const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2)
-    const view = new DataView(arrayBuffer)
-    
-    // WAV header
-    const writeString = (offset: number, string: string) => {
-      for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i))
-      }
-    }
-    
-    writeString(0, 'RIFF')
-    view.setUint32(4, 36 + length * numberOfChannels * 2, true)
-    writeString(8, 'WAVE')
-    writeString(12, 'fmt ')
-    view.setUint32(16, 16, true)
-    view.setUint16(20, 1, true)
-    view.setUint16(22, numberOfChannels, true)
-    view.setUint32(24, sampleRate, true)
-    view.setUint32(28, sampleRate * numberOfChannels * 2, true)
-    view.setUint16(32, numberOfChannels * 2, true)
-    view.setUint16(34, 16, true)
-    writeString(36, 'data')
-    view.setUint32(40, length * numberOfChannels * 2, true)
-    
-    // Audio data
-    let offset = 44
-    for (let i = 0; i < length; i++) {
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]))
-        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true)
-        offset += 2
-      }
-    }
-    
-    return new Blob([arrayBuffer], { type: 'audio/wav' })
-  }
-
   // Process audio blob (transcription and saving)
   const processAudioBlob = async (audioBlob: Blob) => {
     console.log('Processing audio blob, size:', audioBlob.size, 'type:', audioBlob.type)
@@ -440,7 +309,7 @@ export default function Home() {
     
     // Send to API for transcription
     const formData = new FormData()
-    formData.append('audio', audioBlob, 'recording.webm') // Always use .webm extension
+    formData.append('audio', audioBlob, 'recording.mp3')
 
     try {
       console.log('Sending audio to transcription API...')
