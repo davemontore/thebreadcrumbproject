@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
@@ -64,6 +64,7 @@ export default function Home() {
   const [showTextInput, setShowTextInput] = useState(false)
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
   const [audioChunks, setAudioChunks] = useState<Blob[]>([])
+  const audioChunksRef = useRef<Blob[]>([])
   const router = useRouter()
 
   // Check authentication and load entries on component mount
@@ -175,92 +176,121 @@ export default function Home() {
         return
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        } 
+      })
       console.log('Audio stream obtained successfully')
       
       // Try different MIME types for better mobile compatibility
-      let mimeType = 'audio/webm'
-      if (!MediaRecorder.isTypeSupported('audio/webm')) {
-        if (MediaRecorder.isTypeSupported('audio/mp4')) {
-          mimeType = 'audio/mp4'
-        } else if (MediaRecorder.isTypeSupported('audio/wav')) {
-          mimeType = 'audio/wav'
-        } else {
-          mimeType = '' // Let browser choose default
+      let mimeType = ''
+      const supportedTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/wav',
+        'audio/ogg;codecs=opus',
+        'audio/ogg'
+      ]
+      
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type
+          break
         }
       }
       
+      if (!mimeType) {
+        // Let browser choose default
+        mimeType = ''
+      }
+      
       console.log('Using MIME type:', mimeType)
-      const recorder = new MediaRecorder(stream, { mimeType })
+      
+      // Check if we're on mobile and use a different approach
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      
+      if (isMobile && !MediaRecorder.isTypeSupported('audio/webm')) {
+        // Use a simpler approach for mobile browsers
+        console.log('Using mobile fallback recording method')
+        await startMobileRecording(stream)
+        return
+      }
+      
+      const recorder = new MediaRecorder(stream, { 
+        mimeType,
+        audioBitsPerSecond: 128000
+      })
+      
+      // Set up data collection with a timer to ensure we get data
+      let dataTimeout: NodeJS.Timeout
       
       recorder.ondataavailable = (event) => {
         console.log('Audio data available, size:', event.data.size)
         if (event.data.size > 0) {
-          setAudioChunks(prev => [...prev, event.data])
+          audioChunksRef.current.push(event.data)
+          console.log('Added audio chunk, total chunks:', audioChunksRef.current.length + 1)
         }
+      }
+
+      recorder.onstart = () => {
+        console.log('Recording started, setting up data collection...')
+        // Request data every second to ensure we capture audio
+        dataTimeout = setInterval(() => {
+          if (recorder.state === 'recording') {
+            recorder.requestData()
+          }
+        }, 1000)
       }
 
       recorder.onstop = async () => {
         console.log('Recording stopped, processing audio...')
-        const audioBlob = new Blob(audioChunks, { type: mimeType })
+        
+        // Clear the data collection interval
+        if (dataTimeout) {
+          clearInterval(dataTimeout)
+        }
+        
+        // Wait a moment for any final data
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Get the current audio chunks from state
+        const currentChunks = [...audioChunksRef.current]
+        console.log('Final audio chunks count:', currentChunks.length)
+        console.log('Total audio data size:', currentChunks.reduce((total, chunk) => total + chunk.size, 0))
+        
+        const audioBlob = new Blob(currentChunks, { type: mimeType || 'audio/webm' })
         console.log('Audio blob created, size:', audioBlob.size)
         
         if (audioBlob.size === 0) {
-          alert('No audio data was recorded. Please try again.')
+          alert('No audio data was recorded. This might be a browser compatibility issue. Please try using Chrome or Safari.')
           stream.getTracks().forEach(track => track.stop())
-          setAudioChunks([])
+          audioChunksRef.current = []
           return
         }
         
-        // Send to API for transcription
-        const formData = new FormData()
-        formData.append('audio', audioBlob)
-
-        try {
-          console.log('Sending audio to transcription API...')
-          const response = await fetch('/api/transcribe', {
-            method: 'POST',
-            body: formData,
-          })
-
-          if (response.ok) {
-            const { transcription, tags } = await response.json()
-            console.log('Transcription received:', transcription)
-            
-            // Save to database
-            const result = await FirebaseService.createEntry(transcription, audioTitle.trim(), tags)
-            if (result) {
-              console.log('Entry saved successfully')
-              // Refresh entries
-              loadEntries()
-              alert('SUCCESS: Audio entry saved!')
-            } else {
-              alert('FAILED: Could not save entry to database')
-            }
-          } else {
-            const errorData = await response.json().catch(() => ({}))
-            console.error('Transcription failed:', response.status, errorData)
-            alert(`FAILED: Transcription error (${response.status}). Please check your OpenAI API key.`)
-          }
-        } catch (error) {
-          console.error('Error processing audio:', error)
-          alert('ERROR: Failed to process audio. Please try again.')
-        }
-
+        await processAudioBlob(audioBlob)
+        
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop())
-        setAudioChunks([])
+        audioChunksRef.current = []
       }
 
       recorder.onerror = (event) => {
         console.error('MediaRecorder error:', event)
         alert('ERROR: Recording failed. Please try again.')
         stream.getTracks().forEach(track => track.stop())
-        setAudioChunks([])
+        audioChunksRef.current = []
+        if (dataTimeout) {
+          clearInterval(dataTimeout)
+        }
       }
 
       setMediaRecorder(recorder)
-      recorder.start()
+      recorder.start(1000) // Start with 1-second timeslices
       setIsRecording(true)
       setIsPaused(false)
       console.log('Recording started successfully')
@@ -277,6 +307,149 @@ export default function Home() {
       } else {
         alert('ERROR: Failed to start recording. Please try again.')
       }
+    }
+  }
+
+  // Fallback recording method for mobile browsers
+  const startMobileRecording = async (stream: MediaStream) => {
+    try {
+      console.log('Starting mobile fallback recording...')
+      
+      // Create an audio context to capture audio data
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const source = audioContext.createMediaStreamSource(stream)
+      const processor = audioContext.createScriptProcessor(4096, 1, 1)
+      
+      const audioChunks: Float32Array[] = []
+      
+      processor.onaudioprocess = (event) => {
+        const inputData = event.inputBuffer.getChannelData(0)
+        audioChunks.push(new Float32Array(inputData))
+      }
+      
+      source.connect(processor)
+      processor.connect(audioContext.destination)
+      
+      // Store the recording state
+      setMediaRecorder({
+        state: 'recording',
+        stop: () => {
+          processor.disconnect()
+          source.disconnect()
+          audioContext.close()
+          
+          // Convert audio data to blob
+          const audioBuffer = audioContext.createBuffer(1, audioChunks.reduce((acc, chunk) => acc + chunk.length, 0), 44100)
+          const channelData = audioBuffer.getChannelData(0)
+          
+          let offset = 0
+          for (const chunk of audioChunks) {
+            channelData.set(chunk, offset)
+            offset += chunk.length
+          }
+          
+          // Convert to WAV format
+          const wavBlob = audioBufferToWav(audioBuffer)
+          processAudioBlob(wavBlob)
+          
+          stream.getTracks().forEach(track => track.stop())
+        }
+      } as any)
+      
+      setIsRecording(true)
+      setIsPaused(false)
+      
+    } catch (error) {
+      console.error('Mobile recording failed:', error)
+      alert('Mobile recording failed. Please try using Chrome or Safari.')
+      stream.getTracks().forEach(track => track.stop())
+    }
+  }
+
+  // Helper function to convert audio buffer to WAV
+  const audioBufferToWav = (buffer: AudioBuffer): Blob => {
+    const length = buffer.length
+    const numberOfChannels = buffer.numberOfChannels
+    const sampleRate = buffer.sampleRate
+    const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2)
+    const view = new DataView(arrayBuffer)
+    
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i))
+      }
+    }
+    
+    writeString(0, 'RIFF')
+    view.setUint32(4, 36 + length * numberOfChannels * 2, true)
+    writeString(8, 'WAVE')
+    writeString(12, 'fmt ')
+    view.setUint32(16, 16, true)
+    view.setUint16(20, 1, true)
+    view.setUint16(22, numberOfChannels, true)
+    view.setUint32(24, sampleRate, true)
+    view.setUint32(28, sampleRate * numberOfChannels * 2, true)
+    view.setUint16(32, numberOfChannels * 2, true)
+    view.setUint16(34, 16, true)
+    writeString(36, 'data')
+    view.setUint32(40, length * numberOfChannels * 2, true)
+    
+    // Audio data
+    let offset = 44
+    for (let i = 0; i < length; i++) {
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]))
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true)
+        offset += 2
+      }
+    }
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' })
+  }
+
+  // Process audio blob (transcription and saving)
+  const processAudioBlob = async (audioBlob: Blob) => {
+    console.log('Processing audio blob, size:', audioBlob.size)
+    
+    if (audioBlob.size === 0) {
+      alert('No audio data was recorded. Please try again.')
+      return
+    }
+    
+    // Send to API for transcription
+    const formData = new FormData()
+    formData.append('audio', audioBlob)
+
+    try {
+      console.log('Sending audio to transcription API...')
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        const { transcription, tags } = await response.json()
+        console.log('Transcription received:', transcription)
+        
+        // Save to database
+        const result = await FirebaseService.createEntry(transcription, audioTitle.trim(), tags)
+        if (result) {
+          console.log('Entry saved successfully')
+          // Refresh entries
+          loadEntries()
+          alert('SUCCESS: Audio entry saved!')
+        } else {
+          alert('FAILED: Could not save entry to database')
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Transcription failed:', response.status, errorData)
+        alert(`FAILED: Transcription error (${response.status}). Please check your OpenAI API key.`)
+      }
+    } catch (error) {
+      console.error('Error processing audio:', error)
+      alert('ERROR: Failed to process audio. Please try again.')
     }
   }
 
