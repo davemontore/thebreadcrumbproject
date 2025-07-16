@@ -40,8 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'No audio data received' })
         }
 
-        // For FormData, we'll use webm as the default format since that's what we're sending
-        const audioType = 'audio/webm'
+        // For FormData, we'll use the format that was sent
+        const audioType = 'audio/wav' // RecordRTC is sending WAV
         console.log('Transcribe API: Using audio type:', audioType)
         
         const audioBlob = new Blob([audioBuffer], { type: audioType })
@@ -77,7 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           } else if (error.message.includes('quota')) {
             res.status(500).json({ error: 'OpenAI API quota exceeded' })
           } else if (error.message.includes('Invalid audio format')) {
-            res.status(500).json({ error: 'Invalid audio format. Please try recording again.' })
+            console.error('Transcribe API: Audio format error details:', error.message)
+            res.status(500).json({ error: `Invalid audio format: ${error.message}` })
           } else {
             res.status(500).json({ error: `Transcription failed: ${error.message}` })
           }

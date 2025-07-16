@@ -15,17 +15,23 @@ export class WhisperService {
 
       // Check if the blob has a valid audio type
       if (!audioBlob.type || !audioBlob.type.startsWith('audio/')) {
-        console.warn('WhisperService: Blob has invalid type:', audioBlob.type, 'forcing audio/webm')
+        console.warn('WhisperService: Blob has invalid type:', audioBlob.type, 'forcing audio/wav')
         // Recreate the blob with proper type
-        audioBlob = new Blob([audioBlob], { type: 'audio/webm' })
+        audioBlob = new Blob([audioBlob], { type: 'audio/wav' })
       }
 
       // Convert blob to file-like object
       const formData = new FormData()
-      formData.append('file', audioBlob, 'audio.webm')
+      formData.append('file', audioBlob, 'audio.wav')
       formData.append('model', 'whisper-1')
 
       console.log('WhisperService: Sending request to OpenAI with blob type:', audioBlob.type)
+      console.log('WhisperService: Blob details:', {
+        size: audioBlob.size,
+        type: audioBlob.type,
+        lastModified: new Date().toISOString()
+      })
+      
       const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
         headers: {
@@ -39,6 +45,12 @@ export class WhisperService {
       if (!response.ok) {
         const errorText = await response.text()
         console.error('WhisperService: OpenAI API error response:', errorText)
+        console.error('WhisperService: Full error details:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: errorText
+        })
         
         if (response.status === 401) {
           throw new Error('Invalid OpenAI API key')
