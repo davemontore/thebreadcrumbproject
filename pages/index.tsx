@@ -167,23 +167,57 @@ export default function Home() {
 
   const startRecording = async () => {
     try {
+      console.log('Starting audio recording...')
+      
+      // Check if MediaRecorder is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Audio recording is not supported in this browser. Please use a modern browser.')
+        return
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      console.log('Audio stream obtained successfully')
+      
+      // Try different MIME types for better mobile compatibility
+      let mimeType = 'audio/webm'
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4'
+        } else if (MediaRecorder.isTypeSupported('audio/wav')) {
+          mimeType = 'audio/wav'
+        } else {
+          mimeType = '' // Let browser choose default
+        }
+      }
+      
+      console.log('Using MIME type:', mimeType)
+      const recorder = new MediaRecorder(stream, { mimeType })
       
       recorder.ondataavailable = (event) => {
+        console.log('Audio data available, size:', event.data.size)
         if (event.data.size > 0) {
           setAudioChunks(prev => [...prev, event.data])
         }
       }
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+        console.log('Recording stopped, processing audio...')
+        const audioBlob = new Blob(audioChunks, { type: mimeType })
+        console.log('Audio blob created, size:', audioBlob.size)
+        
+        if (audioBlob.size === 0) {
+          alert('No audio data was recorded. Please try again.')
+          stream.getTracks().forEach(track => track.stop())
+          setAudioChunks([])
+          return
+        }
         
         // Send to API for transcription
         const formData = new FormData()
         formData.append('audio', audioBlob)
 
         try {
+          console.log('Sending audio to transcription API...')
           const response = await fetch('/api/transcribe', {
             method: 'POST',
             body: formData,
@@ -191,21 +225,36 @@ export default function Home() {
 
           if (response.ok) {
             const { transcription, tags } = await response.json()
+            console.log('Transcription received:', transcription)
             
             // Save to database
             const result = await FirebaseService.createEntry(transcription, audioTitle.trim(), tags)
             if (result) {
+              console.log('Entry saved successfully')
               // Refresh entries
               loadEntries()
+              alert('SUCCESS: Audio entry saved!')
+            } else {
+              alert('FAILED: Could not save entry to database')
             }
           } else {
-            console.error('Transcription failed')
+            const errorData = await response.json().catch(() => ({}))
+            console.error('Transcription failed:', response.status, errorData)
+            alert(`FAILED: Transcription error (${response.status}). Please check your OpenAI API key.`)
           }
         } catch (error) {
           console.error('Error processing audio:', error)
+          alert('ERROR: Failed to process audio. Please try again.')
         }
 
         // Stop all tracks
+        stream.getTracks().forEach(track => track.stop())
+        setAudioChunks([])
+      }
+
+      recorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event)
+        alert('ERROR: Recording failed. Please try again.')
         stream.getTracks().forEach(track => track.stop())
         setAudioChunks([])
       }
@@ -214,8 +263,20 @@ export default function Home() {
       recorder.start()
       setIsRecording(true)
       setIsPaused(false)
+      console.log('Recording started successfully')
     } catch (error) {
       console.error('Error starting recording:', error)
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          alert('ERROR: Microphone access denied. Please allow microphone access and try again.')
+        } else if (error.name === 'NotFoundError') {
+          alert('ERROR: No microphone found. Please connect a microphone and try again.')
+        } else {
+          alert(`ERROR: ${error.message}`)
+        }
+      } else {
+        alert('ERROR: Failed to start recording. Please try again.')
+      }
     }
   }
 

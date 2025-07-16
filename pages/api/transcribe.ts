@@ -12,7 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Check if OpenAI API key is configured
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY is not configured')
+    return res.status(500).json({ error: 'OpenAI API key not configured' })
+  }
+
   try {
+    console.log('Transcribe API: Starting audio processing...')
+    
     // Get the audio data from the request
     const chunks: Buffer[] = []
     
@@ -22,26 +30,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     req.on('end', async () => {
       try {
+        console.log('Transcribe API: Received audio data, chunks:', chunks.length)
+        
         const audioBuffer = Buffer.concat(chunks)
+        console.log('Transcribe API: Audio buffer size:', audioBuffer.length)
+        
+        if (audioBuffer.length === 0) {
+          console.error('Transcribe API: No audio data received')
+          return res.status(400).json({ error: 'No audio data received' })
+        }
+
         const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' })
+        console.log('Transcribe API: Audio blob created, size:', audioBlob.size)
 
         // Transcribe audio
+        console.log('Transcribe API: Starting transcription...')
         const transcription = await WhisperService.transcribeAudio(audioBlob)
+        console.log('Transcribe API: Transcription completed:', transcription)
+
+        if (!transcription || transcription.trim() === '') {
+          console.warn('Transcribe API: Empty transcription received')
+          return res.status(200).json({
+            transcription: 'No speech detected',
+            tags: ['no-speech']
+          })
+        }
 
         // Generate tags
+        console.log('Transcribe API: Generating tags...')
         const tags = await WhisperService.generateTags(transcription)
+        console.log('Transcribe API: Tags generated:', tags)
 
         res.status(200).json({
           transcription,
           tags,
         })
       } catch (error) {
-        console.error('Error processing audio:', error)
-        res.status(500).json({ error: 'Failed to process audio' })
+        console.error('Transcribe API: Error processing audio:', error)
+        if (error instanceof Error) {
+          if (error.message.includes('API key')) {
+            res.status(500).json({ error: 'Invalid OpenAI API key' })
+          } else if (error.message.includes('quota')) {
+            res.status(500).json({ error: 'OpenAI API quota exceeded' })
+          } else {
+            res.status(500).json({ error: `Transcription failed: ${error.message}` })
+          }
+        } else {
+          res.status(500).json({ error: 'Failed to process audio' })
+        }
       }
     })
+
+    req.on('error', (error) => {
+      console.error('Transcribe API: Request error:', error)
+      res.status(500).json({ error: 'Request error' })
+    })
   } catch (error) {
-    console.error('Error handling request:', error)
+    console.error('Transcribe API: Error handling request:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 } 
