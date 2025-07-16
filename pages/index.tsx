@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 import { SimpleAuth } from '../lib/auth'
+import RecordRTC from 'recordrtc'
 // Remove Heroicons import - using Unicode emojis instead
 
 // Unicode Microphone Emoji Component
@@ -65,6 +66,7 @@ export default function Home() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
   const [audioChunks, setAudioChunks] = useState<Blob[]>([])
   const audioChunksRef = useRef<Blob[]>([])
+  const recordRTCRef = useRef<RecordRTC | null>(null)
   const router = useRouter()
 
   // Check authentication and load entries on component mount
@@ -168,7 +170,7 @@ export default function Home() {
 
   const startRecording = async () => {
     try {
-      console.log('Starting audio recording...')
+      console.log('Starting audio recording with RecordRTC...')
       
       // Check if MediaRecorder is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -185,103 +187,26 @@ export default function Home() {
       })
       console.log('Audio stream obtained successfully')
       
-      // Check if we're on mobile
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      console.log('Mobile detection:', isMobile)
-      
-      // Use MP3 format for maximum compatibility
-      let mimeType = 'audio/mp3'
-      
-      // Check if MP3 is supported, fallback to webm if not
-      if (!MediaRecorder.isTypeSupported('audio/mp3')) {
-        console.log('MP3 not supported, falling back to webm')
-        mimeType = 'audio/webm'
-      }
-      
-      console.log('Using MIME type:', mimeType)
-      
-      const recorder = new MediaRecorder(stream, { 
-        mimeType,
-        audioBitsPerSecond: 128000
+      // Use RecordRTC for better browser compatibility
+      const recordRTC = new RecordRTC(stream, {
+        type: 'audio',
+        mimeType: 'audio/wav',
+        recorderType: RecordRTC.StereoAudioRecorder,
+        numberOfAudioChannels: 1,
+        desiredSampRate: 44100,
+        timeSlice: 1000,
+        ondataavailable: (blob: Blob) => {
+          console.log('RecordRTC: Audio data available, size:', blob.size)
+          audioChunksRef.current.push(blob)
+        }
       })
       
-      // Set up data collection with a timer to ensure we get data
-      let dataTimeout: NodeJS.Timeout
+      recordRTCRef.current = recordRTC
+      recordRTC.startRecording()
       
-      recorder.ondataavailable = (event) => {
-        console.log('Audio data available, size:', event.data.size, 'type:', event.data.type)
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-          console.log('Added audio chunk, total chunks:', audioChunksRef.current.length)
-        }
-      }
-
-      recorder.onstart = () => {
-        console.log('Recording started, setting up data collection...')
-        // Request data every second to ensure we capture audio
-        dataTimeout = setInterval(() => {
-          if (recorder.state === 'recording') {
-            recorder.requestData()
-          }
-        }, 1000)
-      }
-
-      recorder.onstop = async () => {
-        console.log('Recording stopped, processing audio...')
-        
-        // Clear the data collection interval
-        if (dataTimeout) {
-          clearInterval(dataTimeout)
-        }
-        
-        // Wait a moment for any final data
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        // Get the current audio chunks from ref
-        const currentChunks = [...audioChunksRef.current]
-        console.log('Final audio chunks count:', currentChunks.length)
-        console.log('Total audio data size:', currentChunks.reduce((total, chunk) => total + chunk.size, 0))
-        
-        if (currentChunks.length === 0) {
-          alert('No audio data was recorded. Please try again.')
-          stream.getTracks().forEach(track => track.stop())
-          audioChunksRef.current = []
-          return
-        }
-        
-        // Create blob with MP3 format
-        const audioBlob = new Blob(currentChunks, { type: mimeType })
-        console.log('Audio blob created, size:', audioBlob.size, 'type:', mimeType)
-        
-        if (audioBlob.size === 0) {
-          alert('No audio data was recorded. This might be a browser compatibility issue. Please try using Chrome or Safari.')
-          stream.getTracks().forEach(track => track.stop())
-          audioChunksRef.current = []
-          return
-        }
-        
-        await processAudioBlob(audioBlob)
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop())
-        audioChunksRef.current = []
-      }
-
-      recorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event)
-        alert('ERROR: Recording failed. Please try again.')
-        stream.getTracks().forEach(track => track.stop())
-        audioChunksRef.current = []
-        if (dataTimeout) {
-          clearInterval(dataTimeout)
-        }
-      }
-
-      setMediaRecorder(recorder)
-      recorder.start(1000) // Start with 1-second timeslices
       setIsRecording(true)
       setIsPaused(false)
-      console.log('Recording started successfully')
+      console.log('RecordRTC recording started successfully')
     } catch (error) {
       console.error('Error starting recording:', error)
       if (error instanceof Error) {
@@ -353,24 +278,47 @@ export default function Home() {
   }
 
   const pauseRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.pause()
+    if (recordRTCRef.current) {
+      recordRTCRef.current.pauseRecording()
       setIsPaused(true)
     }
   }
 
   const resumeRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'paused') {
-      mediaRecorder.resume()
+    if (recordRTCRef.current) {
+      recordRTCRef.current.resumeRecording()
       setIsPaused(false)
     }
   }
 
   const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop()
-      setIsRecording(false)
-      setIsPaused(false)
+    if (recordRTCRef.current) {
+      recordRTCRef.current.stopRecording(() => {
+        console.log('RecordRTC recording stopped, processing audio...')
+        
+        const blob = recordRTCRef.current?.getBlob()
+        if (blob) {
+          console.log('RecordRTC blob created, size:', blob.size, 'type:', blob.type)
+          
+          if (blob.size === 0) {
+            alert('No audio data was recorded. Please try again.')
+            return
+          }
+          
+          processAudioBlob(blob)
+        } else {
+          alert('No audio data was recorded. Please try again.')
+        }
+        
+        // Stop all tracks from the original stream
+        if (recordRTCRef.current) {
+          recordRTCRef.current.destroy()
+        }
+        recordRTCRef.current = null
+        audioChunksRef.current = []
+        setIsRecording(false)
+        setIsPaused(false)
+      })
     }
   }
 
