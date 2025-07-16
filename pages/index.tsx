@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 import { SimpleAuth } from '../lib/auth'
-import RecordRTC from 'recordrtc'
 // Remove Heroicons import - using Unicode emojis instead
 
 // Unicode Microphone Emoji Component
@@ -66,7 +65,7 @@ export default function Home() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
   const [audioChunks, setAudioChunks] = useState<Blob[]>([])
   const audioChunksRef = useRef<Blob[]>([])
-  const recordRTCRef = useRef<RecordRTC | null>(null)
+  const recordRTCRef = useRef<any>(null)
   const router = useRouter()
 
   // Check authentication and load entries on component mount
@@ -186,6 +185,9 @@ export default function Home() {
         } 
       })
       console.log('Audio stream obtained successfully')
+      
+      // Dynamically import RecordRTC to avoid SSR issues
+      const RecordRTC = (await import('recordrtc')).default
       
       // Use RecordRTC for better browser compatibility
       const recordRTC = new RecordRTC(stream, {
