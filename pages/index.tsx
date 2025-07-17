@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
-import { SimpleAuth } from '../lib/auth'
 import { FirebaseAuthService } from '../lib/firebase-auth'
 // Remove Heroicons import - using Unicode emojis instead
 
@@ -71,7 +70,7 @@ export default function Home() {
 
   // Check authentication and load entries on component mount
   useEffect(() => {
-    // Use Firebase Auth for proper security
+    // Use Firebase Auth only - complete migration
     if (!FirebaseAuthService.isAuthenticated()) {
       router.push('/login')
       return

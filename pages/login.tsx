@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { SimpleAuth } from '../lib/auth'
 import { FirebaseAuthService } from '../lib/firebase-auth'
 
 export default function Login() {
@@ -14,14 +13,14 @@ export default function Login() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if already authenticated with either method
-    if (SimpleAuth.isAuthenticated() || FirebaseAuthService.isAuthenticated()) {
+    // Check if already authenticated with Firebase Auth only
+    if (FirebaseAuthService.isAuthenticated()) {
       router.push('/')
       return
     }
 
-    // Check if password is already set up (for backward compatibility)
-    setIsSetup(SimpleAuth.isPasswordSet())
+    // For new users, always show signup form
+    setIsSetup(false)
   }, [router])
 
   // Validate invitation code
