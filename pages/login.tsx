@@ -7,6 +7,7 @@ import { FirebaseAuthService } from '../lib/firebase-auth'
 export default function Login() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [invitationCode, setInvitationCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [isSetup, setIsSetup] = useState(false)
@@ -23,9 +24,26 @@ export default function Login() {
     setIsSetup(SimpleAuth.isPasswordSet())
   }, [router])
 
+  // Validate invitation code
+  const validateInvitationCode = (code: string): boolean => {
+    const validCodes = process.env.NEXT_PUBLIC_INVITATION_CODES?.split(',') || []
+    return validCodes.includes(code.trim())
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!password.trim() || !username.trim()) return
+
+    // Check invitation code for new signups
+    if (!isSetup && !invitationCode.trim()) {
+      setError('Invitation code is required to create an account.')
+      return
+    }
+
+    if (!isSetup && !validateInvitationCode(invitationCode)) {
+      setError('Invalid invitation code. Please check your code and try again.')
+      return
+    }
 
     setIsLoading(true)
     setError('')
@@ -34,16 +52,12 @@ export default function Login() {
       let success = false
 
       if (isSetup) {
-        // Try Firebase Auth first, then fallback to SimpleAuth
+        // Try Firebase Auth only - no fallback to SimpleAuth
         const firebaseResult = await FirebaseAuthService.loginUser(username.trim(), password)
         if (firebaseResult.success) {
           success = true
         } else {
-          // Fallback to SimpleAuth for existing users
-          success = await SimpleAuth.authenticate(password)
-          if (!success) {
-            setError('Incorrect password. Please try again.')
-          }
+          setError(firebaseResult.error || 'Login failed. Please try again.')
         }
       } else {
         // First time setup - create Firebase account
@@ -116,6 +130,22 @@ export default function Login() {
                   minLength={6}
                 />
               </div>
+              
+              {!isSetup && (
+                <div>
+                  <input
+                    type="text"
+                    id="invitationCode"
+                    value={invitationCode}
+                    onChange={(e) => setInvitationCode(e.target.value)}
+                    className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                    placeholder="invitation code"
+                    required
+                    disabled={isLoading}
+                    autoComplete="off"
+                  />
+                </div>
+              )}
 
               {error && (
                 <div className="p-3 bg-red-900 border border-red-700 rounded-lg">
@@ -125,7 +155,7 @@ export default function Login() {
 
               <button
                 type="submit"
-                disabled={!password.trim() || !username.trim() || isLoading}
+                disabled={!password.trim() || !username.trim() || (!isSetup && !invitationCode.trim()) || isLoading}
                 className="w-full py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
               >
                 {isLoading ? 'Please wait...' : (isSetup ? 'Login' : 'Create Account')}

@@ -71,8 +71,8 @@ export default function Home() {
 
   // Check authentication and load entries on component mount
   useEffect(() => {
-    // For now, use the existing SimpleAuth to maintain compatibility
-    if (!SimpleAuth.isAuthenticated()) {
+    // Use Firebase Auth for proper security
+    if (!FirebaseAuthService.isAuthenticated()) {
       router.push('/login')
       return
     }
@@ -395,8 +395,8 @@ export default function Home() {
           <div className="flex flex-col items-center">
             <div className="flex justify-between w-full mb-4">
               <button
-                onClick={() => {
-                  SimpleAuth.logout()
+                onClick={async () => {
+                  await FirebaseAuthService.logoutUser()
                   router.push('/login')
                 }}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
