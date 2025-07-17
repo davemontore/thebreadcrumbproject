@@ -9,7 +9,6 @@ export default function Login() {
   const [invitationCode, setInvitationCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [isSetup, setIsSetup] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -18,9 +17,6 @@ export default function Login() {
       router.push('/')
       return
     }
-
-    // For new users, always show signup form
-    setIsSetup(false)
   }, [router])
 
   // Validate invitation code
@@ -29,17 +25,37 @@ export default function Login() {
     return validCodes.includes(code.trim())
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+
+
+  const handleLogin = async () => {
     if (!password.trim() || !username.trim()) return
 
-    // Check invitation code for new signups
-    if (!isSetup && !invitationCode.trim()) {
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const loginResult = await FirebaseAuthService.loginUser(username.trim(), password)
+      if (loginResult.success) {
+        router.push('/')
+      } else {
+        setError(loginResult.error || 'Login failed. Please try again.')
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSignup = async () => {
+    if (!password.trim() || !username.trim()) return
+
+    if (!invitationCode.trim()) {
       setError('Invitation code is required to create an account.')
       return
     }
 
-    if (!isSetup && !validateInvitationCode(invitationCode)) {
+    if (!validateInvitationCode(invitationCode)) {
       setError('Invalid invitation code. Please check your code and try again.')
       return
     }
@@ -48,28 +64,11 @@ export default function Login() {
     setError('')
 
     try {
-      let success = false
-
-      if (isSetup) {
-        // Try Firebase Auth only - no fallback to SimpleAuth
-        const firebaseResult = await FirebaseAuthService.loginUser(username.trim(), password)
-        if (firebaseResult.success) {
-          success = true
-        } else {
-          setError(firebaseResult.error || 'Login failed. Please try again.')
-        }
-      } else {
-        // First time setup - create Firebase account
-        const firebaseResult = await FirebaseAuthService.registerUser(username.trim(), password)
-        if (firebaseResult.success) {
-          success = true
-        } else {
-          setError(firebaseResult.error || 'Failed to create account. Please try again.')
-        }
-      }
-
-      if (success) {
+      const registerResult = await FirebaseAuthService.registerUser(username.trim(), password)
+      if (registerResult.success) {
         router.push('/')
+      } else {
+        setError(registerResult.error || 'Failed to create account. Please try again.')
       }
     } catch (error) {
       setError('An error occurred. Please try again.')
@@ -97,11 +96,11 @@ export default function Login() {
                 Leaving a trail of wisdom for your kids to follow after you're gone
               </p>
               <p className="text-cream-80">
-                {isSetup ? 'Enter your credentials to continue' : 'Create your account'}
+                Enter your credentials to continue
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
               <div>
                 <input
                   type="email"
@@ -110,7 +109,6 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
                   placeholder="email address"
-                  required
                   disabled={isLoading}
                   autoComplete="email"
                 />
@@ -123,28 +121,24 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
                   placeholder="password"
-                  required
                   disabled={isLoading}
-                  autoComplete={isSetup ? "current-password" : "new-password"}
+                  autoComplete="current-password"
                   minLength={6}
                 />
               </div>
               
-              {!isSetup && (
-                <div>
-                  <input
-                    type="text"
-                    id="invitationCode"
-                    value={invitationCode}
-                    onChange={(e) => setInvitationCode(e.target.value)}
-                    className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
-                    placeholder="invitation code"
-                    required
-                    disabled={isLoading}
-                    autoComplete="off"
-                  />
-                </div>
-              )}
+              <div>
+                <input
+                  type="text"
+                  id="invitationCode"
+                  value={invitationCode}
+                  onChange={(e) => setInvitationCode(e.target.value)}
+                  className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                  placeholder="invitation code (for new accounts)"
+                  disabled={isLoading}
+                  autoComplete="off"
+                />
+              </div>
 
               {error && (
                 <div className="p-3 bg-red-900 border border-red-700 rounded-lg">
@@ -152,22 +146,31 @@ export default function Login() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={!password.trim() || !username.trim() || (!isSetup && !invitationCode.trim()) || isLoading}
-                className="w-full py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
-              >
-                {isLoading ? 'Please wait...' : (isSetup ? 'Login' : 'Create Account')}
-              </button>
-            </form>
-
-            {isSetup && (
-              <div className="mt-6 text-center">
-                <p className="text-sm text-cream-60">
-                  Forgot your password? Clear your browser data to reset.
-                </p>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={handleLogin}
+                  disabled={!password.trim() || !username.trim() || isLoading}
+                  className="flex-1 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                >
+                  {isLoading ? 'Please wait...' : 'Login'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignup}
+                  disabled={!password.trim() || !username.trim() || !invitationCode.trim() || isLoading}
+                  className="flex-1 py-3 bg-cream-10 text-cream rounded-xl hover:bg-cream-20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                >
+                  {isLoading ? 'Please wait...' : 'Sign Up'}
+                </button>
               </div>
-            )}
+            </div>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-cream-60">
+                Don't have an account? Create one.
+              </p>
+            </div>
           </div>
         </div>
       </div>
