@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { SimpleAuth } from '../lib/auth'
+import { FirebaseAuthService } from '../lib/firebase-auth'
 
 export default function Login() {
   const [password, setPassword] = useState('')
@@ -12,19 +13,19 @@ export default function Login() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if already authenticated
-    if (SimpleAuth.isAuthenticated()) {
+    // Check if already authenticated with either method
+    if (SimpleAuth.isAuthenticated() || FirebaseAuthService.isAuthenticated()) {
       router.push('/')
       return
     }
 
-    // Check if password is already set up
+    // Check if password is already set up (for backward compatibility)
     setIsSetup(SimpleAuth.isPasswordSet())
   }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!password.trim()) return
+    if (!password.trim() || !username.trim()) return
 
     setIsLoading(true)
     setError('')
@@ -33,16 +34,24 @@ export default function Login() {
       let success = false
 
       if (isSetup) {
-        // Regular login
-        success = await SimpleAuth.authenticate(password)
-        if (!success) {
-          setError('Incorrect password. Please try again.')
+        // Try Firebase Auth first, then fallback to SimpleAuth
+        const firebaseResult = await FirebaseAuthService.loginUser(username.trim(), password)
+        if (firebaseResult.success) {
+          success = true
+        } else {
+          // Fallback to SimpleAuth for existing users
+          success = await SimpleAuth.authenticate(password)
+          if (!success) {
+            setError('Incorrect password. Please try again.')
+          }
         }
       } else {
-        // First time setup
-        success = await SimpleAuth.setupPassword(password)
-        if (!success) {
-          setError('Failed to set up password. Please try again.')
+        // First time setup - create Firebase account
+        const firebaseResult = await FirebaseAuthService.registerUser(username.trim(), password)
+        if (firebaseResult.success) {
+          success = true
+        } else {
+          setError(firebaseResult.error || 'Failed to create account. Please try again.')
         }
       }
 
@@ -75,22 +84,22 @@ export default function Login() {
                 Leaving a trail of wisdom for your kids to follow after you're gone
               </p>
               <p className="text-cream-80">
-                {isSetup ? 'Enter your password to continue' : 'Set up your password'}
+                {isSetup ? 'Enter your credentials to continue' : 'Create your account'}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <input
-                  type="text"
+                  type="email"
                   id="username"
-                  value={username || ''}
+                  value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
-                  placeholder="username"
+                  placeholder="email address"
                   required
                   disabled={isLoading}
-                  autoComplete="username"
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -103,7 +112,8 @@ export default function Login() {
                   placeholder="password"
                   required
                   disabled={isLoading}
-                  autoComplete="current-password"
+                  autoComplete={isSetup ? "current-password" : "new-password"}
+                  minLength={6}
                 />
               </div>
 
@@ -115,10 +125,10 @@ export default function Login() {
 
               <button
                 type="submit"
-                disabled={!password.trim() || isLoading}
+                disabled={!password.trim() || !username.trim() || isLoading}
                 className="w-full py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
               >
-                {isLoading ? 'Please wait...' : (isSetup ? 'Login' : 'Set Password')}
+                {isLoading ? 'Please wait...' : (isSetup ? 'Login' : 'Create Account')}
               </button>
             </form>
 

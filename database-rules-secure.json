@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "journal_entries": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "users": {
+      "$uid": {
+        "journal_entries": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid"
+        }
+      }
+    }
+  }
+} 

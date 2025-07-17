@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 import { SimpleAuth } from '../lib/auth'
+import { FirebaseAuthService } from '../lib/firebase-auth'
 // Remove Heroicons import - using Unicode emojis instead
 
 // Unicode Microphone Emoji Component
@@ -70,6 +71,7 @@ export default function Home() {
 
   // Check authentication and load entries on component mount
   useEffect(() => {
+    // For now, use the existing SimpleAuth to maintain compatibility
     if (!SimpleAuth.isAuthenticated()) {
       router.push('/login')
       return
@@ -391,7 +393,16 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex flex-col items-center">
-            <div className="flex justify-end w-full mb-4">
+            <div className="flex justify-between w-full mb-4">
+              <button
+                onClick={() => {
+                  SimpleAuth.logout()
+                  router.push('/login')
+                }}
+                className="px-4 py-2 bg-red-900 border border-red-700 rounded-lg text-red-300 hover:bg-red-800 transition-colors"
+              >
+                Logout
+              </button>
               <button
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"

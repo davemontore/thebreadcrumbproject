@@ -1,5 +1,6 @@
 import { db } from './firebase';
 import { ref, push, get, update, serverTimestamp } from 'firebase/database';
+import { FirebaseAuthService } from './firebase-auth';
 
 export interface JournalEntry {
   id: string;
@@ -10,12 +11,27 @@ export interface JournalEntry {
 }
 
 export class FirebaseService {
+  // Get the current user's data path
+  private static getUserDataPath(): string {
+    const user = FirebaseAuthService.getCurrentUser();
+    if (user) {
+      // New multi-user structure
+      return `users/${user.uid}/journal_entries`;
+    } else {
+      // Fallback to old structure for backward compatibility
+      return 'journal_entries';
+    }
+  }
+
   static async createEntry(text: string, title?: string, tags?: string[]): Promise<JournalEntry | null> {
     try {
       console.log('FirebaseService: Attempting to create entry with text:', text);
       console.log('FirebaseService: Database instance:', db);
       
+      // For now, always use the old structure to maintain compatibility
       const entriesRef = ref(db, 'journal_entries');
+      console.log('FirebaseService: Using data path: journal_entries');
+      
       const newEntryRef = await push(entriesRef, {
         text: text,
         title: title || '',
@@ -39,7 +55,6 @@ export class FirebaseService {
         code: error.code,
         stack: error.stack
       });
-      // alert(`Firebase Error: ${error.message}`);
       return null;
     }
   }
@@ -48,6 +63,7 @@ export class FirebaseService {
     try {
       console.log('FirebaseService: Attempting to update entry with ID:', id);
       
+      // For now, always use the old structure
       const entryRef = ref(db, `journal_entries/${id}`);
       await update(entryRef, {
         text: text,
@@ -72,7 +88,11 @@ export class FirebaseService {
   static async getEntries(): Promise<JournalEntry[]> {
     try {
       console.log('FirebaseService: Attempting to get entries');
+      
+      // For now, always use the old structure
       const entriesRef = ref(db, 'journal_entries');
+      console.log('FirebaseService: Using data path: journal_entries');
+      
       const snapshot = await get(entriesRef);
       
       console.log('FirebaseService: Retrieved entries:', snapshot.exists() ? Object.keys(snapshot.val()).length : 0);
@@ -100,7 +120,6 @@ export class FirebaseService {
         code: error.code,
         stack: error.stack
       });
-      // alert(`Firebase Error: ${error.message}`);
       return [];
     }
   }

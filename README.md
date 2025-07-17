@@ -79,8 +79,15 @@ A beautiful, secure journaling app that syncs across all your devices using Fire
    - Check that Whisper API key is set
    - Verify microphone permissions
    - Check browser console for errors
+   - **Mobile Audio Recording Fix**: If audio recording fails on mobile browsers, ensure the API properly parses FormData using formidable. The transcription API must correctly handle multipart form data to avoid "Invalid audio format" errors from Whisper.
 
-4. **"App won't load"**
+4. **"Invalid audio format" Whisper error**
+   - **CRITICAL FIX**: Use formidable to parse FormData in the transcription API
+   - Ensure correct filename extension matches actual audio format (WebM files should have .webm extension)
+   - Mobile browsers require proper FormData parsing to avoid format detection issues
+   - This was the key fix that resolved mobile audio recording issues
+
+5. **"App won't load"**
    - Verify your Firebase credentials are correct
    - Check that all dependencies are installed
    - Clear browser cache and try again
