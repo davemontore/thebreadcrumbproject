@@ -399,7 +399,7 @@ export default function Home() {
                   SimpleAuth.logout()
                   router.push('/login')
                 }}
-                className="px-4 py-2 bg-red-900 border border-red-700 rounded-lg text-red-300 hover:bg-red-800 transition-colors"
+                className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
                 Logout
               </button>
