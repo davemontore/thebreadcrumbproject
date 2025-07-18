@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { SimpleAuth } from '../lib/auth'
+import { FirebaseAuthService } from '../lib/firebase-auth'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 
 export default function Basket() {
@@ -32,7 +32,7 @@ export default function Basket() {
   useEffect(() => {
     // Check authentication
     const checkUser = async () => {
-      if (!SimpleAuth.isAuthenticated()) {
+      if (!FirebaseAuthService.isAuthenticated()) {
         router.push('/login')
         return
       }

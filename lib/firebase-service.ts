@@ -14,11 +14,19 @@ export class FirebaseService {
   // Get the current user's data path
   private static getUserDataPath(): string {
     const user = FirebaseAuthService.getCurrentUser();
+    console.log('FirebaseService: Current user:', user ? { uid: user.uid, email: user.email } : 'null');
+    console.log('FirebaseService: Is authenticated:', FirebaseAuthService.isAuthenticated());
+    console.log('FirebaseService: Auth object:', FirebaseAuthService.getCurrentUser());
+    
     if (user) {
       // New multi-user structure
-      return `users/${user.uid}/journal_entries`;
+      const path = `users/${user.uid}/journal_entries`;
+      console.log('FirebaseService: Using user-specific path:', path);
+      return path;
     } else {
       // Fallback to old structure for backward compatibility
+      console.log('FirebaseService: No user found, using fallback path: journal_entries');
+      console.log('FirebaseService: This should not happen if user is authenticated!');
       return 'journal_entries';
     }
   }
@@ -28,10 +36,10 @@ export class FirebaseService {
       console.log('FirebaseService: Attempting to create entry with text:', text);
       console.log('FirebaseService: Database instance:', db);
       
-      // For now, always use the old structure to maintain compatibility
-      const entriesRef = ref(db, 'journal_entries');
-      console.log('FirebaseService: Using data path: journal_entries');
+      const dataPath = this.getUserDataPath();
+      console.log('FirebaseService: Using data path:', dataPath);
       
+      const entriesRef = ref(db, dataPath);
       const newEntryRef = await push(entriesRef, {
         text: text,
         title: title || '',
@@ -63,8 +71,8 @@ export class FirebaseService {
     try {
       console.log('FirebaseService: Attempting to update entry with ID:', id);
       
-      // For now, always use the old structure
-      const entryRef = ref(db, `journal_entries/${id}`);
+      const dataPath = this.getUserDataPath();
+      const entryRef = ref(db, `${dataPath}/${id}`);
       await update(entryRef, {
         text: text,
         title: title || '',
@@ -89,10 +97,13 @@ export class FirebaseService {
     try {
       console.log('FirebaseService: Attempting to get entries');
       
-      // For now, always use the old structure
-      const entriesRef = ref(db, 'journal_entries');
-      console.log('FirebaseService: Using data path: journal_entries');
+      // Wait a moment for auth state to be ready
+      await new Promise(resolve => setTimeout(resolve, 500));
       
+      const dataPath = this.getUserDataPath();
+      console.log('FirebaseService: Using data path:', dataPath);
+      
+      const entriesRef = ref(db, dataPath);
       const snapshot = await get(entriesRef);
       
       console.log('FirebaseService: Retrieved entries:', snapshot.exists() ? Object.keys(snapshot.val()).length : 0);
@@ -121,6 +132,44 @@ export class FirebaseService {
         stack: error.stack
       });
       return [];
+    }
+  }
+
+  static async migrateExistingEntries(): Promise<boolean> {
+    try {
+      console.log('FirebaseService: Starting migration of existing entries');
+      
+      const user = FirebaseAuthService.getCurrentUser();
+      if (!user) {
+        console.error('FirebaseService: No authenticated user for migration');
+        return false;
+      }
+
+      // Get entries from old path
+      const oldEntriesRef = ref(db, 'journal_entries');
+      const oldSnapshot = await get(oldEntriesRef);
+      
+      if (!oldSnapshot.exists()) {
+        console.log('FirebaseService: No existing entries to migrate');
+        return true;
+      }
+
+      const userEntriesRef = ref(db, `users/${user.uid}/journal_entries`);
+      const migrationPromises: Promise<any>[] = [];
+
+      oldSnapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
+        const newEntryRef = ref(db, `users/${user.uid}/journal_entries/${childSnapshot.key}`);
+        migrationPromises.push(update(newEntryRef, data));
+      });
+
+      await Promise.all(migrationPromises);
+      console.log('FirebaseService: Migration completed successfully');
+      
+      return true;
+    } catch (error: any) {
+      console.error('FirebaseService: Migration failed:', error);
+      return false;
     }
   }
 } 

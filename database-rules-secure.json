@@ -1,8 +1,8 @@
 {
   "rules": {
     "journal_entries": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": false,
+      ".write": false
     },
     "users": {
       "$uid": {

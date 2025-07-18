@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
-import { SimpleAuth } from '../lib/auth'
+import { FirebaseAuthService } from '../lib/firebase-auth'
 
 // Custom Elegant House Icon Component
 const ElegantHouseIcon = ({ className }: { className?: string }) => (
@@ -27,7 +27,7 @@ export default function TextEntry() {
 
   // Check authentication on component mount
   useEffect(() => {
-    if (!SimpleAuth.isAuthenticated()) {
+    if (!FirebaseAuthService.isAuthenticated()) {
       router.push('/login')
       return
     }
@@ -75,8 +75,8 @@ export default function TextEntry() {
     }
   }
 
-  const handleLogout = () => {
-    SimpleAuth.logout()
+  const handleLogout = async () => {
+    await FirebaseAuthService.logoutUser()
     router.push('/login')
   }
 
