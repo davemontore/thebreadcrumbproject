@@ -21,8 +21,14 @@ export default function Login() {
 
   // Validate invitation code
   const validateInvitationCode = (code: string): boolean => {
-    const validCodes = process.env.NEXT_PUBLIC_INVITATION_CODES?.split(',') || []
-    return validCodes.includes(code.trim())
+    const validCode = process.env.NEXT_PUBLIC_INVITATION_CODES || ''
+    const isValid = code.trim() === validCode.trim()
+    
+    console.log('Valid code:', validCode)
+    console.log('Checking code:', code.trim())
+    console.log('Is valid:', isValid)
+    
+    return isValid
   }
 
 
