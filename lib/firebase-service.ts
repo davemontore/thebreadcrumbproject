@@ -13,15 +13,7 @@ export interface JournalEntry {
 export class FirebaseService {
   // Get the current user's data path
   private static async getUserDataPath(): Promise<string> {
-    // Wait for auth state to be ready
-    let attempts = 0;
-    let user = FirebaseAuthService.getCurrentUser();
-    
-    while (!user && attempts < 10) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      user = FirebaseAuthService.getCurrentUser();
-      attempts++;
-    }
+    const user = FirebaseAuthService.getCurrentUser();
     
     console.log('FirebaseService: Current user:', user ? { uid: user.uid, email: user.email } : 'null');
     console.log('FirebaseService: Is authenticated:', FirebaseAuthService.isAuthenticated());
@@ -32,10 +24,9 @@ export class FirebaseService {
       console.log('FirebaseService: Using user-specific path:', path);
       return path;
     } else {
-      // Fallback to old structure for backward compatibility
-      console.log('FirebaseService: No user found, using fallback path: journal_entries');
-      console.log('FirebaseService: This should not happen if user is authenticated!');
-      return 'journal_entries';
+      // This should not happen since auth is initialized in _app.tsx
+      console.error('FirebaseService: No authenticated user found!');
+      throw new Error('User not authenticated');
     }
   }
 
@@ -104,9 +95,6 @@ export class FirebaseService {
   static async getEntries(): Promise<JournalEntry[]> {
     try {
       console.log('FirebaseService: Attempting to get entries');
-      
-      // Wait a moment for auth state to be ready
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       const dataPath = await this.getUserDataPath();
       console.log('FirebaseService: Using data path:', dataPath);

@@ -1,7 +1,7 @@
 {
-  "name": "simple-journal",
+  "name": "breadcrumb-project",
   "version": "1.0.0",
-  "description": "A simple, elegant journaling app that syncs across devices",
+  "description": "A secure, multi-user journaling app that helps you leave a trail of wisdom for your kids to follow after you're gone. Built with Firebase Authentication, AI-powered voice transcription, and real-time sync.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

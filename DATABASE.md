@@ -18,12 +18,59 @@ This application is configured to use **Firebase Realtime Database**, which is d
 - **Lower complexity** for basic CRUD operations
 - **Better performance** for small to medium datasets
 
+## Multi-User Data Structure
+
+### Current Structure (User-Specific Paths):
+```json
+{
+  "users": {
+    "user1_uid": {
+      "journal_entries": {
+        "-NxYz123": {
+          "text": "My journal entry",
+          "title": "Entry title",
+          "timestamp": 1703123456789,
+          "tags": ["personal", "reflection"]
+        },
+        "-NxYz124": {
+          "text": "Another entry",
+          "title": "Another title",
+          "timestamp": 1703123456790,
+          "tags": ["work", "ideas"]
+        }
+      }
+    },
+    "user2_uid": {
+      "journal_entries": {
+        "-NxYz125": {
+          "text": "User 2's entry",
+          "title": "User 2 title",
+          "timestamp": 1703123456791,
+          "tags": ["family", "memories"]
+        }
+      }
+    }
+  },
+  "journal_entries": {
+    ".read": false,
+    ".write": false
+  }
+}
+```
+
+### Key Features:
+- **User Isolation**: Each user's data is completely separate
+- **Firebase Auth Integration**: User UID from Firebase Auth determines data path
+- **Secure Access**: Database rules enforce user-specific access
+- **Migration Support**: Tools to migrate from old shared structure
+
 ## Configuration Files
 
 ### 1. Firebase Configuration (`lib/firebase.ts`)
 ```typescript
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database"; // NOT firebase/firestore
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -38,6 +85,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app); // Realtime Database instance
+export const auth = getAuth(app); // Firebase Auth instance
 ```
 
 ### 2. Database Service (`lib/firebase-service.ts`)
@@ -46,27 +94,84 @@ import { ref, push, get, query, orderByChild, serverTimestamp } from 'firebase/d
 // NOT: import { collection, addDoc, getDocs } from 'firebase/firestore'
 
 export class FirebaseService {
-  static async createEntry(text: string) {
-    const entriesRef = ref(db, 'journal_entries'); // Realtime Database reference
+  // Get the current user's data path
+  private static async getUserDataPath(): Promise<string> {
+    const user = FirebaseAuthService.getCurrentUser();
+    if (user) {
+      // New multi-user structure
+      return `users/${user.uid}/journal_entries`;
+    } else {
+      // Fallback to old structure for backward compatibility
+      return 'journal_entries';
+    }
+  }
+
+  static async createEntry(text: string, title?: string, tags?: string[]): Promise<JournalEntry | null> {
+    const dataPath = await this.getUserDataPath();
+    const entriesRef = ref(db, dataPath);
     const newEntryRef = await push(entriesRef, {
       text: text,
+      title: title || '',
       timestamp: serverTimestamp(),
-      tags: []
+      tags: tags || []
     });
     return newEntryRef.key;
   }
 
-  static async getEntries() {
-    const entriesRef = ref(db, 'journal_entries');
+  static async getEntries(): Promise<JournalEntry[]> {
+    const dataPath = await this.getUserDataPath();
+    const entriesRef = ref(db, dataPath);
     const snapshot = await get(entriesRef);
     // Process snapshot data...
   }
 }
 ```
 
+### 3. Authentication Service (`lib/firebase-auth.ts`)
+```typescript
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  User
+} from 'firebase/auth';
+import { auth } from './firebase';
+
+export class FirebaseAuthService {
+  static async registerUser(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (error: any) {
+      // Handle specific error codes...
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  static async loginUser(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (error: any) {
+      // Handle specific error codes...
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  static getCurrentUser(): User | null {
+    return auth.currentUser;
+  }
+
+  static isAuthenticated(): boolean {
+    return auth.currentUser !== null;
+  }
+}
+```
+
 ## Environment Variables
 
-### Required for Realtime Database:
+### Required for Realtime Database + Auth:
 ```env
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
@@ -76,12 +181,15 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+OPENAI_API_KEY=your_openai_api_key
+NEXT_PUBLIC_INVITATION_CODES=code1,code2,code3
 ```
 
 ### Key Points:
 - `NEXT_PUBLIC_FIREBASE_DATABASE_URL` is **REQUIRED** for Realtime Database
 - This URL format: `https://your_project-default-rtdb.firebaseio.com`
 - **NOT** the Firestore URL format
+- `NEXT_PUBLIC_INVITATION_CODES` controls user registration access
 
 ## Firebase Console Setup
 
@@ -92,11 +200,38 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 4. Choose "Start in test mode"
 5. Select location
 
-### 2. Database URL
+### 2. Enable Firebase Authentication
+1. Go to Firebase Console → Authentication
+2. Click "Get started"
+3. Go to "Sign-in method" tab
+4. Enable "Email/Password" provider
+5. Click "Save"
+
+### 3. Database URL
 - Your database URL will be: `https://your_project-default-rtdb.firebaseio.com`
 - This is different from Firestore URLs
 
-### 3. Database Rules
+### 4. Database Rules (Production)
+```json
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        "journal_entries": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid"
+        }
+      }
+    },
+    "journal_entries": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
+```
+
+### 5. Database Rules (Development/Test)
 ```json
 {
   "rules": {
@@ -106,31 +241,52 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 }
 ```
 
-## Data Structure
+## Data Migration
 
-### Realtime Database Structure:
-```json
-{
-  "journal_entries": {
-    "-NxYz123": {
-      "text": "My journal entry",
-      "timestamp": 1703123456789,
-      "tags": ["personal", "reflection"]
-    },
-    "-NxYz124": {
-      "text": "Another entry",
-      "timestamp": 1703123456790,
-      "tags": ["work", "ideas"]
-    }
+### From Shared to User-Specific Structure
+
+The app originally used a shared `journal_entries` path. Migration to user-specific paths was implemented to support multi-user functionality.
+
+### Migration Process:
+1. **Automatic Migration**: The app includes a migration function that moves entries from the old shared path to user-specific paths
+2. **Manual Migration**: A standalone migration script is available for manual execution
+3. **Database Rules**: After migration, rules block access to the old shared path
+
+### Migration Function:
+```typescript
+static async migrateExistingEntries(): Promise<boolean> {
+  try {
+    const user = FirebaseAuthService.getCurrentUser();
+    if (!user) return false;
+
+    // Get entries from old path
+    const oldEntriesRef = ref(db, 'journal_entries');
+    const oldSnapshot = await get(oldEntriesRef);
+    
+    if (!oldSnapshot.exists()) return true;
+
+    const userEntriesRef = ref(db, `users/${user.uid}/journal_entries`);
+    const migrationPromises: Promise<any>[] = [];
+
+    oldSnapshot.forEach((childSnapshot) => {
+      const data = childSnapshot.val();
+      const newEntryRef = ref(db, `users/${user.uid}/journal_entries/${childSnapshot.key}`);
+      migrationPromises.push(update(newEntryRef, data));
+    });
+
+    await Promise.all(migrationPromises);
+    return true;
+  } catch (error) {
+    return false;
   }
 }
 ```
 
-### Key Differences from Firestore:
-- **No collections/documents** - just JSON tree structure
-- **No subcollections** - nested objects instead
-- **No complex queries** - basic filtering and ordering only
-- **Real-time by default** - no need for onSnapshot listeners
+### Migration Considerations:
+- **Data Ownership**: The old shared structure didn't contain user ownership information
+- **Manual Assignment**: Migration may require manual cleanup if entries were mixed between users
+- **Backup**: Always backup data before migration
+- **Testing**: Test migration on a copy of production data first
 
 ## Common Errors and Solutions
 
@@ -147,11 +303,26 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 
 ### 3. "Permission denied"
 **Cause**: Database rules are too restrictive
-**Solution**: Set rules to allow read/write in test mode
+**Solution**: Set rules to allow read/write in test mode, or ensure user is authenticated
 
 ### 4. "Collection not found"
 **Cause**: Using Firestore terminology with Realtime Database
 **Solution**: Use `ref(db, 'path')` instead of `collection(db, 'name')`
+
+### 5. "No entries visible"
+**Cause**: User not authenticated or wrong data path
+**Solution**: 
+- Check that user is logged in
+- Verify Firebase Auth is working
+- Check browser console for authentication status
+- Ensure database rules allow user access
+
+### 6. "Invalid invitation code"
+**Cause**: Invitation code validation failing
+**Solution**:
+- Verify `NEXT_PUBLIC_INVITATION_CODES` is set
+- Check that codes are comma-separated without spaces
+- Ensure the code matches exactly (case-sensitive)
 
 ## Migration from Firestore
 
@@ -187,22 +358,53 @@ const snapshot = await get(ref(db, 'entries'));
 # Should return: { "success": true, "entryCount": 0 }
 ```
 
+### Test Authentication:
+1. Try creating an account with invitation code
+2. Test logging in and out
+3. Verify user-specific data paths are used
+
 ### Test Data Creation:
 1. Create a journal entry in the app
 2. Check Firebase Console → Realtime Database
-3. Verify data appears under `journal_entries`
+3. Verify data appears under `users/{uid}/journal_entries`
 
 ## Troubleshooting Checklist
 
 - [ ] Firebase project has Realtime Database (not Firestore)
+- [ ] Firebase Authentication is enabled
 - [ ] `NEXT_PUBLIC_FIREBASE_DATABASE_URL` is set correctly
-- [ ] Database rules allow read/write
+- [ ] `NEXT_PUBLIC_INVITATION_CODES` is set
+- [ ] Database rules allow authenticated user access
 - [ ] Code uses `firebase/database` imports
 - [ ] Code uses `getDatabase()` not `getFirestore()`
 - [ ] Environment variables are set in Vercel (if deployed)
+- [ ] Authorized domains are configured in Firebase Auth
+
+## Security Best Practices
+
+### 1. User Isolation
+- Each user's data is stored in separate paths
+- Database rules enforce user-specific access
+- No cross-user data access is possible
+
+### 2. Authentication
+- Firebase Auth provides industry-standard security
+- Invitation codes prevent unauthorized signups
+- Session management is handled automatically
+
+### 3. Database Rules
+- Production rules should enforce user isolation
+- Old shared paths should be blocked
+- Regular security audits are recommended
+
+### 4. Environment Variables
+- Never commit sensitive keys to version control
+- Use environment variables for all configuration
+- Rotate API keys regularly
 
 ## Remember
 
 **This app uses Firebase Realtime Database, NOT Firestore.**
 **All documentation, setup guides, and code examples should reference Realtime Database.**
-**Never use Firestore terminology or imports in this codebase.** 
+**Never use Firestore terminology or imports in this codebase.**
+**User data is isolated by Firebase Auth UID in separate database paths.** 
