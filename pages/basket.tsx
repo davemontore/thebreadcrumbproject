@@ -113,30 +113,16 @@ export default function Basket() {
     }
   }
 
-  const getPreviewText = (text: string): string => {
-    const lines = text.split('\n')
-    const previewLines = lines.slice(0, 3)
-    const result = previewLines.join('\n')
-    console.log('Preview text debug:', { 
-      originalText: text, 
-      lines: lines.length, 
-      previewLines: previewLines.length, 
-      result 
-    })
-    return result
-  }
-
   const isLongerThanPreview = (text: string): boolean => {
+    // Check if text has more than 3 lines by counting actual line breaks
     const lines = text.split('\n')
-    const maxLines = 3
-    const isLonger = lines.length > maxLines
-    console.log('Is longer than preview debug:', { 
-      text: text.substring(0, 100) + '...', 
-      lines: lines.length, 
-      maxLines, 
-      isLonger 
-    })
-    return isLonger
+    if (lines.length > 3) return true
+    
+    // Also check if text is very long (likely to wrap to more than 3 lines on mobile)
+    // Rough estimate: if text is longer than ~120 characters, it's likely to wrap
+    if (text.length > 120) return true
+    
+    return false
   }
 
   // Show loading while checking authentication
@@ -262,7 +248,7 @@ export default function Basket() {
                               </div>
                             ) : (
                               <div>
-                                <p className="whitespace-pre-wrap">{getPreviewText(breadcrumb.text)}</p>
+                                <p className="whitespace-pre-wrap line-clamp-3">{breadcrumb.text}</p>
                                 {isLongerThanPreview(breadcrumb.text) && (
                                   <button
                                     onClick={() => toggleExpanded(breadcrumb.id)}
