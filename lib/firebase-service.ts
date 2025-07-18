@@ -12,11 +12,19 @@ export interface JournalEntry {
 
 export class FirebaseService {
   // Get the current user's data path
-  private static getUserDataPath(): string {
-    const user = FirebaseAuthService.getCurrentUser();
+  private static async getUserDataPath(): Promise<string> {
+    // Wait for auth state to be ready
+    let attempts = 0;
+    let user = FirebaseAuthService.getCurrentUser();
+    
+    while (!user && attempts < 10) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      user = FirebaseAuthService.getCurrentUser();
+      attempts++;
+    }
+    
     console.log('FirebaseService: Current user:', user ? { uid: user.uid, email: user.email } : 'null');
     console.log('FirebaseService: Is authenticated:', FirebaseAuthService.isAuthenticated());
-    console.log('FirebaseService: Auth object:', FirebaseAuthService.getCurrentUser());
     
     if (user) {
       // New multi-user structure
@@ -36,7 +44,7 @@ export class FirebaseService {
       console.log('FirebaseService: Attempting to create entry with text:', text);
       console.log('FirebaseService: Database instance:', db);
       
-      const dataPath = this.getUserDataPath();
+      const dataPath = await this.getUserDataPath();
       console.log('FirebaseService: Using data path:', dataPath);
       
       const entriesRef = ref(db, dataPath);
@@ -71,7 +79,7 @@ export class FirebaseService {
     try {
       console.log('FirebaseService: Attempting to update entry with ID:', id);
       
-      const dataPath = this.getUserDataPath();
+      const dataPath = await this.getUserDataPath();
       const entryRef = ref(db, `${dataPath}/${id}`);
       await update(entryRef, {
         text: text,
@@ -100,7 +108,7 @@ export class FirebaseService {
       // Wait a moment for auth state to be ready
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const dataPath = this.getUserDataPath();
+      const dataPath = await this.getUserDataPath();
       console.log('FirebaseService: Using data path:', dataPath);
       
       const entriesRef = ref(db, dataPath);
