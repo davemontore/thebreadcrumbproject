@@ -61,7 +61,11 @@ export default function Login() {
       return
     }
 
-    if (!validateInvitationCode(invitationCode)) {
+    // Client-side validation with detailed logging
+    const clientValid = validateInvitationCode(invitationCode)
+    console.log('Client-side validation result:', clientValid)
+
+    if (!clientValid) {
       setError('Invalid invitation code. Please check your code and try again.')
       return
     }
@@ -70,6 +74,22 @@ export default function Login() {
     setError('')
 
     try {
+      // Double-check with server-side validation
+      const serverCheck = await fetch('/api/validate-invitation-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: invitationCode.trim() })
+      })
+      
+      const serverResult = await serverCheck.json()
+      console.log('Server validation result:', serverResult)
+      
+      if (!serverResult.valid) {
+        setError('Server validation failed. Please try again.')
+        setIsLoading(false)
+        return
+      }
+
       const registerResult = await FirebaseAuthService.registerUser(username.trim(), password)
       if (registerResult.success) {
         router.push('/')
@@ -77,6 +97,7 @@ export default function Login() {
         setError(registerResult.error || 'Failed to create account. Please try again.')
       }
     } catch (error) {
+      console.error('Signup error:', error)
       setError('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
