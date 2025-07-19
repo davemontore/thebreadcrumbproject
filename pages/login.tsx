@@ -165,6 +165,9 @@ export default function Login() {
                   disabled={isLoading}
                   autoComplete="off"
                 />
+                <p className="text-xs text-cream-60 mt-1 text-center">
+                  Required to create a new account
+                </p>
               </div>
 
               {error && (
@@ -173,22 +176,25 @@ export default function Login() {
                 </div>
               )}
 
-              <div className="flex gap-4">
+              <div className="space-y-4">
                 <button
                   type="button"
                   onClick={handleLogin}
                   disabled={!password.trim() || !username.trim() || isLoading}
-                  className="flex-1 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                  className="w-full py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
                 >
-                  {isLoading ? 'Please wait...' : 'Login'}
+                  {isLoading ? 'Please wait...' : 'Login to Existing Account'}
                 </button>
+                <div className="text-center">
+                  <span className="text-cream-60 text-sm">— or —</span>
+                </div>
                 <button
                   type="button"
                   onClick={handleSignup}
                   disabled={!password.trim() || !username.trim() || !invitationCode.trim() || isLoading}
-                  className="flex-1 py-3 bg-cream-10 text-cream rounded-xl hover:bg-cream-20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                  className="w-full py-3 bg-cream-10 text-cream rounded-xl hover:bg-cream-20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
                 >
-                  {isLoading ? 'Please wait...' : 'Sign Up'}
+                  {isLoading ? 'Please wait...' : 'Create New Account'}
                 </button>
               </div>
             </div>
