@@ -415,18 +415,18 @@ export default function Home() {
           </div>
 
           {/* Title and Tagline */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-5xl sm:text-6xl font-bold text-cream leading-tight mb-4" style={{ fontFamily: 'Special Elite, monospace' }}>
               <span className="block">Write Here.</span>
               <span className="block">Right Now.</span>
             </h1>
-            <p className="text-2xl sm:text-3xl font-light text-cream-80 mb-8" style={{ fontFamily: 'Homemade Apple, cursive' }}>
+            <p className="text-2xl sm:text-3xl font-light text-cream-80 mb-6" style={{ fontFamily: 'Homemade Apple, cursive' }}>
               Notes or it didn't happen
             </p>
           </div>
 
           {/* Quote Section */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-4">
             <p className="text-lg text-cream-80 mb-2" style={{ fontFamily: 'Cutive Mono, monospace' }}>
               "There are meaningful, life-changing moments happening in your life all the time. That dander in the wind will blow by you for the rest of your life unless you learn to see it, capture it, hold on to it, and find a way to keep it in your heart forever."
             </p>
@@ -436,7 +436,7 @@ export default function Home() {
           </div>
 
           {/* Capture Moments Text */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <p className="text-lg text-cream" style={{ fontFamily: 'Special Elite, monospace' }}>
               Capture your moments below...
             </p>
