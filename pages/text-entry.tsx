@@ -83,7 +83,7 @@ export default function TextEntry() {
   return (
     <>
       <Head>
-        <title>Write Text - The Breadcrumb Project</title>
+        <title>Write Text - Write Here. Right Now</title>
         <meta name="description" content="Write your thoughts and memories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
@@ -93,17 +93,19 @@ export default function TextEntry() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-light text-cream">Write Text</h1>
+            <h1 className="text-3xl font-light text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Write Text</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => router.push('/')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
+                style={{ fontFamily: 'Cutive Mono, monospace' }}
               >
-                <ElegantHouseIcon className="w-6 h-6 text-cream" />
+                <ElegantHouseIcon className="w-5 h-5" />
               </button>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
+                style={{ fontFamily: 'Cutive Mono, monospace' }}
               >
                 Logout
               </button>
@@ -111,35 +113,30 @@ export default function TextEntry() {
           </div>
 
           {/* Text Entry Form */}
-          <div className="bg-cream-5 rounded-2xl shadow-sm border border-cream-10 p-6 max-w-2xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <textarea
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 placeholder="What's on your mind?"
-                className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream"
-                rows={8}
-                disabled={isSubmitting}
+                className="w-full p-6 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream"
+                style={{ fontFamily: 'Cutive Mono, monospace' }}
+                rows={12}
                 autoFocus
+                required
               />
-              <div className="flex justify-between items-center">
-                <button
-                  type="submit"
-                  disabled={!newEntry.trim() || isSubmitting}
-                  className="px-6 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Entry'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => router.push('/basket')}
-                  className="px-4 py-2 text-cream-60 hover:text-cream transition-colors"
-                >
-                  View Entries
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={!newEntry.trim() || isSubmitting}
+                className="px-8 py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                style={{ fontFamily: 'Cutive Mono, monospace' }}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Entry'}
+              </button>
+            </div>
+          </form>
         </div>
       </main>
     </>

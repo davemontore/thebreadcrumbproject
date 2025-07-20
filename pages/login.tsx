@@ -107,7 +107,7 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Login - The Breadcrumb Project</title>
+        <title>Login - Write Here. Right Now</title>
         <meta name="description" content="Secure access to your journal" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
@@ -116,11 +116,11 @@ export default function Login() {
         <div className="w-full max-w-md">
           <div className="bg-cream-10 border border-cream-30 rounded-2xl p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-light text-cream mb-2">
-                The Breadcrumb Project
+              <h1 className="text-3xl font-light text-cream mb-2" style={{ fontFamily: 'Special Elite, monospace' }}>
+                Write Here. Right Now
               </h1>
-              <p className="text-cream-80 mb-2 text-base italic">
-                Leaving a trail of wisdom for your kids to follow after you're gone
+              <p className="text-cream-80 mb-2 text-base italic" style={{ fontFamily: 'Homemade Apple, cursive' }}>
+                Notes or it didn't happen
               </p>
               <p className="text-cream-80">
                 Enter your credentials to continue
@@ -135,6 +135,7 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                  style={{ fontFamily: 'Cutive Mono, monospace' }}
                   placeholder="email address"
                   disabled={isLoading}
                   autoComplete="email"
@@ -147,6 +148,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                  style={{ fontFamily: 'Cutive Mono, monospace' }}
                   placeholder="password"
                   disabled={isLoading}
                   autoComplete="current-password"
@@ -161,6 +163,7 @@ export default function Login() {
                   value={invitationCode}
                   onChange={(e) => setInvitationCode(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
+                  style={{ fontFamily: 'Cutive Mono, monospace' }}
                   placeholder="invitation code (for new accounts)"
                   disabled={isLoading}
                   autoComplete="off"
@@ -182,6 +185,7 @@ export default function Login() {
                   onClick={handleLogin}
                   disabled={!password.trim() || !username.trim() || isLoading}
                   className="w-full py-3 bg-cream-20 text-cream rounded-xl hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                  style={{ fontFamily: 'Cutive Mono, monospace' }}
                 >
                   {isLoading ? 'Please wait...' : 'Login to Existing Account'}
                 </button>
@@ -193,6 +197,7 @@ export default function Login() {
                   onClick={handleSignup}
                   disabled={!password.trim() || !username.trim() || !invitationCode.trim() || isLoading}
                   className="w-full py-3 bg-cream-10 text-cream rounded-xl hover:bg-cream-20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-cream-30"
+                  style={{ fontFamily: 'Cutive Mono, monospace' }}
                 >
                   {isLoading ? 'Please wait...' : 'Create New Account'}
                 </button>

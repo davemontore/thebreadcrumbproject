@@ -381,7 +381,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>The Breadcrumb Project</title>
+        <title>Write Here. Right Now</title>
         <meta name="description" content="Record your thoughts and memories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
@@ -417,23 +417,27 @@ export default function Home() {
             <div className="flex flex-col items-center">
               {/* Title with equal spacing */}
               <div className="text-center mb-8">
-                <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight">
-                  <span className="block">The Breadcrumb</span>
-                  <span className="block">Project</span>
+                <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight" style={{ fontFamily: 'Special Elite, monospace' }}>
+                  <span className="block">Write Here.</span>
+                  <span className="block">Right Now</span>
                 </h1>
-                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-8" style={{ fontFamily: 'Caveat, cursive' }}>
-                  A trail of wisdom for your kids to follow after you're gone.
+                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-8" style={{ fontFamily: 'Homemade Apple, cursive' }}>
+                  Notes or it didn't happen
                 </p>
               </div>
 
               {/* Audio Recording Section */}
               <div className="flex flex-col items-center mb-8">
                 {!isRecording ? (
-                  <div className="flex flex-col items-center space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
                     <div className="group cursor-pointer" onClick={startRecording}>
-                      <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                        {/* Unicode Microphone Emoji */}
-                        <ModernMicrophoneIcon className="text-[3rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
+                      <div className="w-40 h-16 bg-cream-10 border-2 border-cream-30 rounded-lg flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                        <span className="text-cream text-lg font-medium" style={{ fontFamily: 'Cutive Mono, monospace' }}>Talk</span>
+                      </div>
+                    </div>
+                    <div className="group cursor-pointer" onClick={startTextEntry}>
+                      <div className="w-40 h-16 bg-cream-10 border-2 border-cream-30 rounded-lg flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                        <span className="text-cream text-lg font-medium" style={{ fontFamily: 'Cutive Mono, monospace' }}>Type</span>
                       </div>
                     </div>
                   </div>
@@ -445,11 +449,12 @@ export default function Home() {
                       onChange={(e) => setAudioTitle(e.target.value)}
                       placeholder="Title for your audio entry (optional)"
                       className="w-64 p-2 border border-cream-30 rounded bg-cream-10 text-cream text-center mb-4"
+                      style={{ fontFamily: 'Cutive Mono, monospace' }}
                     />
                     <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
                     </div>
-                    <p className="text-cream-80 text-lg mb-4">
+                    <p className="text-cream-80 text-lg mb-4" style={{ fontFamily: 'Cutive Mono, monospace' }}>
                       {isPaused ? 'Recording Paused' : 'Recording...'}
                     </p>
                     <div className="flex gap-4 justify-center">
@@ -457,6 +462,7 @@ export default function Home() {
                         <button
                           onClick={resumeRecording}
                           className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                          style={{ fontFamily: 'Cutive Mono, monospace' }}
                         >
                           Resume
                         </button>
@@ -464,6 +470,7 @@ export default function Home() {
                         <button
                           onClick={pauseRecording}
                           className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                          style={{ fontFamily: 'Cutive Mono, monospace' }}
                         >
                           Pause
                         </button>
@@ -471,6 +478,7 @@ export default function Home() {
                       <button
                         onClick={stopRecording}
                         className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
                       >
                         Submit
                       </button>
@@ -481,14 +489,7 @@ export default function Home() {
 
               {/* Text Entry Section */}
               <div className="flex flex-col items-center">
-                {!showTextInput ? (
-                                  <div className="group cursor-pointer" onClick={startTextEntry}>
-                  <div className="w-40 h-40 bg-cream-10 border-2 border-cream-30 rounded-full flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                    {/* Unicode Writing Hand Emoji */}
-                    <HandWritingIcon className="text-[2rem] text-cream group-hover:scale-110 transition-transform duration-300"/>
-                  </div>
-                </div>
-                ) : (
+                {showTextInput && (
                   <div className="w-full max-w-2xl">
                     <input
                       type="text"
@@ -496,12 +497,14 @@ export default function Home() {
                       onChange={(e) => setTextTitle(e.target.value)}
                       placeholder="Title for your entry (optional)"
                       className="w-full p-3 border border-cream-30 rounded-xl bg-cream-10 text-cream mb-4 text-center"
+                      style={{ fontFamily: 'Cutive Mono, monospace' }}
                     />
                     <textarea
                       value={textEntry}
                       onChange={(e) => setTextEntry(e.target.value)}
                       placeholder="What's on your mind?"
                       className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
+                      style={{ fontFamily: 'Cutive Mono, monospace' }}
                       rows={6}
                       autoFocus
                     />
@@ -510,12 +513,14 @@ export default function Home() {
                         onClick={submitTextEntry}
                         disabled={!textEntry.trim() || isSubmitting}
                         className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
                       >
                         {isSubmitting ? 'Saving...' : 'Submit'}
                       </button>
                       <button
                         onClick={cancelTextEntry}
                         className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
                       >
                         Cancel
                       </button>

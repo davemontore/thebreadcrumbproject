@@ -139,10 +139,10 @@ export default function Basket() {
   return (
     <>
       <Head>
-        <title>Breadcrumb Basket - The Breadcrumb Project</title>
-        <meta name="description" content="View your recorded thoughts and memories" />
+        <title>Entries - Write Here. Right Now</title>
+        <meta name="description" content="View your journal entries" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <meta name="theme-color" content="#000000" />
       </Head>
 
       <main className="min-h-screen bg-black text-cream p-4">
@@ -160,7 +160,7 @@ export default function Basket() {
               </button>
             </div>
             <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl font-bold text-cream">Breadcrumb Basket</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Entries</h1>
             </div>
           </div>
 
@@ -182,11 +182,13 @@ export default function Basket() {
                         onChange={(e) => setEditTitle(e.target.value)}
                         placeholder="Title (optional)"
                         className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
                       />
                       <textarea
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
                         className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
                         rows={6}
                       />
                       <div className="flex gap-2">
@@ -194,12 +196,14 @@ export default function Basket() {
                           onClick={saveEdit}
                           disabled={!editText.trim() || isSubmitting}
                           className="px-4 py-2 bg-cream-20 text-cream rounded hover:bg-cream-30 disabled:opacity-50 transition-colors"
+                          style={{ fontFamily: 'Cutive Mono, monospace' }}
                         >
                           {isSubmitting ? 'Saving...' : 'Save'}
                         </button>
                         <button
                           onClick={cancelEditing}
                           className="px-4 py-2 bg-cream-10 text-cream-60 rounded hover:bg-cream-20 transition-colors"
+                          style={{ fontFamily: 'Cutive Mono, monospace' }}
                         >
                           Cancel
                         </button>
@@ -213,7 +217,7 @@ export default function Basket() {
                       )}
                       
                       {/* Date underneath title */}
-                      <div className="text-sm text-cream-60 mb-3">
+                      <div className="text-sm text-cream-60 mb-3" style={{ fontFamily: 'Special Elite, monospace' }}>
                         {new Date(breadcrumb.timestamp).toLocaleDateString('en-US', { 
                           day: '2-digit',
                           month: '2-digit', 
@@ -225,7 +229,7 @@ export default function Basket() {
                       {breadcrumb.tags && breadcrumb.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
                           {breadcrumb.tags.slice(0, 4).map((tag, index) => (
-                            <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full">
+                            <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full" style={{ fontFamily: 'Cutive Mono, monospace' }}>
                               {tag}
                             </span>
                           ))}
@@ -264,6 +268,7 @@ export default function Basket() {
                         <button
                           onClick={() => startEditing(breadcrumb)}
                           className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors ml-2 flex-shrink-0"
+                          style={{ fontFamily: 'Cutive Mono, monospace' }}
                         >
                           Edit
                         </button>
