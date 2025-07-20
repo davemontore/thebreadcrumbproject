@@ -414,123 +414,137 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Main Content - Title and Circles as a Unit, Vertically Centered */}
-          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
-            {/* Title and Circles Unit */}
+          {/* Title and Tagline */}
+          <div className="text-center mb-8">
+            <h1 className="text-5xl sm:text-6xl font-bold text-cream leading-tight mb-4" style={{ fontFamily: 'Special Elite, monospace' }}>
+              <span className="block">Write Here.</span>
+              <span className="block">Right Now.</span>
+            </h1>
+            <p className="text-2xl sm:text-3xl font-light text-cream-80 mb-8" style={{ fontFamily: 'Homemade Apple, cursive' }}>
+              Notes or it didn't happen
+            </p>
+          </div>
+
+          {/* Quote Section */}
+          <div className="text-center mb-8">
+            <p className="text-lg text-cream-80 mb-2" style={{ fontFamily: 'Cutive Mono, monospace' }}>
+              "There are meaningful, life-changing moments happening in your life all the time. That dander in the wind will blow by you for the rest of your life unless you learn to see it, capture it, hold on to it, and find a way to keep it in your heart forever."
+            </p>
+            <p className="text-sm text-cream-60 text-right" style={{ fontFamily: 'Cutive Mono, monospace' }}>
+              Matthew Dicks
+            </p>
+          </div>
+
+          {/* Capture Moments Text */}
+          <div className="text-center mb-8">
+            <p className="text-lg text-cream" style={{ fontFamily: 'Special Elite, monospace' }}>
+              Capture your moments below...
+            </p>
+          </div>
+
+          {/* Main Content - Buttons */}
+          <div className="flex flex-col items-center justify-center">
+            {/* Audio Recording Section */}
+            <div className="flex flex-col items-center mb-8">
+              {!isRecording ? (
+                <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
+                  <div className="group cursor-pointer" onClick={startRecording}>
+                    <div className="w-40 h-16 bg-cream-10 border-2 border-cream-30 rounded-lg flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                      <span className="text-cream text-lg font-medium" style={{ fontFamily: 'Cutive Mono, monospace' }}>Talk</span>
+                    </div>
+                  </div>
+                  <div className="group cursor-pointer" onClick={startTextEntry}>
+                    <div className="w-40 h-16 bg-cream-10 border-2 border-cream-30 rounded-lg flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
+                      <span className="text-cream text-lg font-medium" style={{ fontFamily: 'Cutive Mono, monospace' }}>Type</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <input
+                    type="text"
+                    value={audioTitle}
+                    onChange={(e) => setAudioTitle(e.target.value)}
+                    placeholder="Title for your audio entry (optional)"
+                    className="w-64 p-2 border border-cream-30 rounded bg-cream-10 text-cream text-center mb-4"
+                    style={{ fontFamily: 'Cutive Mono, monospace' }}
+                  />
+                  <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
+                  </div>
+                  <p className="text-cream-80 text-lg mb-4" style={{ fontFamily: 'Cutive Mono, monospace' }}>
+                    {isPaused ? 'Recording Paused' : 'Recording...'}
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    {isPaused ? (
+                      <button
+                        onClick={resumeRecording}
+                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
+                      >
+                        Resume
+                      </button>
+                    ) : (
+                      <button
+                        onClick={pauseRecording}
+                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
+                        style={{ fontFamily: 'Cutive Mono, monospace' }}
+                      >
+                        Pause
+                      </button>
+                    )}
+                    <button
+                      onClick={stopRecording}
+                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      style={{ fontFamily: 'Cutive Mono, monospace' }}
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Text Entry Section */}
             <div className="flex flex-col items-center">
-              {/* Title with equal spacing */}
-              <div className="text-center mb-8">
-                <h1 className="text-5xl sm:text-6xl font-bold text-cream leading-tight" style={{ fontFamily: 'Special Elite, monospace' }}>
-                  <span className="block">Write Here.</span>
-                  <span className="block">Right Now.</span>
-                </h1>
-                <p className="text-2xl sm:text-3xl font-light text-cream-80 mt-8" style={{ fontFamily: 'Homemade Apple, cursive' }}>
-                  Notes or it didn't happen
-                </p>
-              </div>
-
-              {/* Audio Recording Section */}
-              <div className="flex flex-col items-center mb-8">
-                {!isRecording ? (
-                  <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
-                    <div className="group cursor-pointer" onClick={startRecording}>
-                      <div className="w-40 h-16 bg-cream-10 border-2 border-cream-30 rounded-lg flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                        <span className="text-cream text-lg font-medium" style={{ fontFamily: 'Cutive Mono, monospace' }}>Talk</span>
-                      </div>
-                    </div>
-                    <div className="group cursor-pointer" onClick={startTextEntry}>
-                      <div className="w-40 h-16 bg-cream-10 border-2 border-cream-30 rounded-lg flex items-center justify-center hover:bg-cream-20 hover:border-cream-50 transition-all duration-300">
-                        <span className="text-cream text-lg font-medium" style={{ fontFamily: 'Cutive Mono, monospace' }}>Type</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <input
-                      type="text"
-                      value={audioTitle}
-                      onChange={(e) => setAudioTitle(e.target.value)}
-                      placeholder="Title for your audio entry (optional)"
-                      className="w-64 p-2 border border-cream-30 rounded bg-cream-10 text-cream text-center mb-4"
+              {showTextInput && (
+                <div className="w-full max-w-2xl">
+                  <input
+                    type="text"
+                    value={textTitle}
+                    onChange={(e) => setTextTitle(e.target.value)}
+                    placeholder="Title for your entry (optional)"
+                    className="w-full p-3 border border-cream-30 rounded-xl bg-cream-10 text-cream mb-4 text-center"
+                    style={{ fontFamily: 'Cutive Mono, monospace' }}
+                  />
+                  <textarea
+                    value={textEntry}
+                    onChange={(e) => setTextEntry(e.target.value)}
+                    placeholder="What's on your mind?"
+                    className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
+                    style={{ fontFamily: 'Cutive Mono, monospace' }}
+                    rows={6}
+                    autoFocus
+                  />
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={submitTextEntry}
+                      disabled={!textEntry.trim() || isSubmitting}
+                      className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
                       style={{ fontFamily: 'Cutive Mono, monospace' }}
-                    />
-                    <div className="w-40 h-40 bg-cream-20 border-2 border-cream-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
-                    </div>
-                    <p className="text-cream-80 text-lg mb-4" style={{ fontFamily: 'Cutive Mono, monospace' }}>
-                      {isPaused ? 'Recording Paused' : 'Recording...'}
-                    </p>
-                    <div className="flex gap-4 justify-center">
-                      {isPaused ? (
-                        <button
-                          onClick={resumeRecording}
-                          className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
-                          style={{ fontFamily: 'Cutive Mono, monospace' }}
-                        >
-                          Resume
-                        </button>
-                      ) : (
-                        <button
-                          onClick={pauseRecording}
-                          className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 transition-colors border border-cream-30"
-                          style={{ fontFamily: 'Cutive Mono, monospace' }}
-                        >
-                          Pause
-                        </button>
-                      )}
-                      <button
-                        onClick={stopRecording}
-                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                        style={{ fontFamily: 'Cutive Mono, monospace' }}
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Text Entry Section */}
-              <div className="flex flex-col items-center">
-                {showTextInput && (
-                  <div className="w-full max-w-2xl">
-                    <input
-                      type="text"
-                      value={textTitle}
-                      onChange={(e) => setTextTitle(e.target.value)}
-                      placeholder="Title for your entry (optional)"
-                      className="w-full p-3 border border-cream-30 rounded-xl bg-cream-10 text-cream mb-4 text-center"
+                    >
+                      {isSubmitting ? 'Saving...' : 'Submit'}
+                    </button>
+                    <button
+                      onClick={cancelTextEntry}
+                      className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
                       style={{ fontFamily: 'Cutive Mono, monospace' }}
-                    />
-                    <textarea
-                      value={textEntry}
-                      onChange={(e) => setTextEntry(e.target.value)}
-                      placeholder="What's on your mind?"
-                      className="w-full p-4 border border-cream-30 rounded-xl resize-none focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream mb-4"
-                      style={{ fontFamily: 'Cutive Mono, monospace' }}
-                      rows={6}
-                      autoFocus
-                    />
-                    <div className="flex gap-4 justify-center">
-                      <button
-                        onClick={submitTextEntry}
-                        disabled={!textEntry.trim() || isSubmitting}
-                        className="px-6 py-2 bg-cream-20 text-cream rounded-lg hover:bg-cream-30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-cream-30"
-                        style={{ fontFamily: 'Cutive Mono, monospace' }}
-                      >
-                        {isSubmitting ? 'Saving...' : 'Submit'}
-                      </button>
-                      <button
-                        onClick={cancelTextEntry}
-                        className="px-6 py-2 bg-cream-10 text-cream-60 rounded-lg hover:bg-cream-20 transition-colors border border-cream-30"
-                        style={{ fontFamily: 'Cutive Mono, monospace' }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    >
+                      Cancel
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
