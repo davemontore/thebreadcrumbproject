@@ -93,7 +93,7 @@ export default function TextEntry() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-light text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Write Text</h1>
+            <h1 className="text-5xl sm:text-6xl font-light text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Write Text</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => router.push('/')}

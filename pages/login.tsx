@@ -116,10 +116,10 @@ export default function Login() {
         <div className="w-full max-w-md">
           <div className="bg-cream-10 border border-cream-30 rounded-2xl p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-light text-cream mb-2" style={{ fontFamily: 'Special Elite, monospace' }}>
-                Write Here. Right Now
+              <h1 className="text-5xl sm:text-6xl font-light text-cream mb-2" style={{ fontFamily: 'Special Elite, monospace' }}>
+                Write Here. Right Now.
               </h1>
-              <p className="text-cream-80 mb-2 text-base italic" style={{ fontFamily: 'Homemade Apple, cursive' }}>
+              <p className="text-2xl sm:text-3xl font-light text-cream-80 mb-2 text-base italic" style={{ fontFamily: 'Homemade Apple, cursive' }}>
                 Notes or it didn't happen
               </p>
               <p className="text-cream-80">

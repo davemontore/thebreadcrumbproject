@@ -160,7 +160,7 @@ export default function Basket() {
               </button>
             </div>
             <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Entries</h1>
+              <h1 className="text-5xl sm:text-6xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Entries</h1>
             </div>
           </div>
 
@@ -213,7 +213,7 @@ export default function Basket() {
                     <>
                       {/* Title at the top */}
                       {breadcrumb.title && (
-                        <h3 className="text-lg font-semibold text-cream mb-2">{breadcrumb.title}</h3>
+                        <h3 className="text-lg font-semibold text-cream mb-2" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>{breadcrumb.title}</h3>
                       )}
                       
                       {/* Date underneath title */}
@@ -239,7 +239,7 @@ export default function Basket() {
                       {/* Edit button and entry text */}
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                          <div className="text-cream leading-relaxed">
+                          <div className="text-cream leading-relaxed" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>
                             {expandedItems.has(breadcrumb.id) ? (
                               <div>
                                 <p className="whitespace-pre-wrap">{breadcrumb.text}</p>

@@ -399,6 +399,7 @@ export default function Home() {
                   router.push('/login')
                 }}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
+                style={{ fontFamily: 'IM Fell Double Pica, serif' }}
               >
                 Logout
               </button>
@@ -406,7 +407,7 @@ export default function Home() {
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <ElegantBreadIcon className="w-6 h-6 text-cream"/>
+                <span className="text-xl">✍️</span>
               </button>
             </div>
           </div>
@@ -417,11 +418,11 @@ export default function Home() {
             <div className="flex flex-col items-center">
               {/* Title with equal spacing */}
               <div className="text-center mb-8">
-                <h1 className="text-4xl sm:text-5xl font-bold text-cream leading-tight" style={{ fontFamily: 'Special Elite, monospace' }}>
+                <h1 className="text-5xl sm:text-6xl font-bold text-cream leading-tight" style={{ fontFamily: 'Special Elite, monospace' }}>
                   <span className="block">Write Here.</span>
-                  <span className="block">Right Now</span>
+                  <span className="block">Right Now.</span>
                 </h1>
-                <p className="text-xl sm:text-2xl font-light text-cream-80 mt-8" style={{ fontFamily: 'Homemade Apple, cursive' }}>
+                <p className="text-2xl sm:text-3xl font-light text-cream-80 mt-8" style={{ fontFamily: 'Homemade Apple, cursive' }}>
                   Notes or it didn't happen
                 </p>
               </div>
