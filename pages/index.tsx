@@ -407,7 +407,9 @@ export default function Home() {
                 onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
-                <span className="text-xl text-cream">✍️</span>
+                <span className="text-xl" style={{ 
+                  filter: 'grayscale(100%) brightness(1.2) contrast(1.1)'
+                }}>✍️</span>
               </button>
             </div>
           </div>
