@@ -5,7 +5,7 @@ import { FirebaseAuthService } from '../lib/firebase-auth'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 
 export default function Basket() {
-  const [breadcrumbs, setBreadcrumbs] = useState<JournalEntry[]>([])
+  const [entries, setEntries] = useState<JournalEntry[]>([])
   const [user, setUser] = useState<boolean>(false)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -39,11 +39,11 @@ export default function Basket() {
       
       setUser(true)
       
-      // Load breadcrumbs from database
+      // Load entries from database
       try {
         const entries = await FirebaseService.getEntries()
         console.log('Basket: Loaded entries:', entries)
-        setBreadcrumbs(entries)
+        setEntries(entries)
       } catch (error) {
         console.error('Error loading entries:', error)
       }
@@ -100,7 +100,7 @@ export default function Basket() {
       if (success) {
         // Refresh entries
         const entries = await FirebaseService.getEntries()
-        setBreadcrumbs(entries)
+        setEntries(entries)
         cancelEditing()
       } else {
         alert('Failed to update entry')
@@ -164,17 +164,17 @@ export default function Basket() {
             </div>
           </div>
 
-          {/* Breadcrumbs Display */}
-          {breadcrumbs.length === 0 ? (
+          {/* Entries Display */}
+          {entries.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-cream-60 text-lg mb-4">No breadcrumbs yet.</p>
+              <p className="text-cream-60 text-lg mb-4">No entries yet.</p>
               <p className="text-cream-40">Start recording or writing to leave your first trace.</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {breadcrumbs.map((breadcrumb) => (
-                <div key={breadcrumb.id} className="bg-cream-5 border border-cream-10 rounded-lg p-6">
-                  {editingId === breadcrumb.id ? (
+              {entries.map((entry) => (
+                <div key={entry.id} className="bg-cream-5 border border-cream-10 rounded-lg p-6">
+                  {editingId === entry.id ? (
                     <div className="space-y-4">
                       <input
                         type="text"
@@ -212,13 +212,13 @@ export default function Basket() {
                   ) : (
                     <>
                       {/* Title at the top */}
-                      {breadcrumb.title && (
-                        <h3 className="text-lg font-semibold text-cream mb-2" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>{breadcrumb.title}</h3>
+                      {entry.title && (
+                        <h3 className="text-lg font-semibold text-cream mb-2" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>{entry.title}</h3>
                       )}
                       
                       {/* Date underneath title */}
                       <div className="text-sm text-cream-60 mb-3" style={{ fontFamily: 'Special Elite, monospace' }}>
-                        {new Date(breadcrumb.timestamp).toLocaleDateString('en-US', { 
+                        {new Date(entry.timestamp).toLocaleDateString('en-US', { 
                           day: '2-digit',
                           month: '2-digit', 
                           year: 'numeric'
@@ -226,9 +226,9 @@ export default function Basket() {
                       </div>
                       
                       {/* Tags below date */}
-                      {breadcrumb.tags && breadcrumb.tags.length > 0 && (
+                      {entry.tags && entry.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
-                          {breadcrumb.tags.slice(0, 4).map((tag, index) => (
+                          {entry.tags.slice(0, 4).map((tag, index) => (
                             <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full" style={{ fontFamily: 'Cutive Mono, monospace' }}>
                               {tag}
                             </span>
@@ -240,11 +240,11 @@ export default function Basket() {
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
                           <div className="text-cream leading-relaxed" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>
-                            {expandedItems.has(breadcrumb.id) ? (
+                            {expandedItems.has(entry.id) ? (
                               <div>
-                                <p className="whitespace-pre-wrap">{breadcrumb.text}</p>
+                                <p className="whitespace-pre-wrap">{entry.text}</p>
                                 <button
-                                  onClick={() => toggleExpanded(breadcrumb.id)}
+                                  onClick={() => toggleExpanded(entry.id)}
                                   className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
                                 >
                                   See Less
@@ -252,10 +252,10 @@ export default function Basket() {
                               </div>
                             ) : (
                               <div>
-                                <p className="whitespace-pre-wrap line-clamp-3">{breadcrumb.text}</p>
-                                {isLongerThanPreview(breadcrumb.text) && (
+                                <p className="whitespace-pre-wrap line-clamp-3">{entry.text}</p>
+                                {isLongerThanPreview(entry.text) && (
                                   <button
-                                    onClick={() => toggleExpanded(breadcrumb.id)}
+                                    onClick={() => toggleExpanded(entry.id)}
                                     className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
                                   >
                                     See More
@@ -266,7 +266,7 @@ export default function Basket() {
                           </div>
                         </div>
                         <button
-                          onClick={() => startEditing(breadcrumb)}
+                          onClick={() => startEditing(entry)}
                           className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors ml-2 flex-shrink-0"
                           style={{ fontFamily: 'Cutive Mono, monospace' }}
                         >
