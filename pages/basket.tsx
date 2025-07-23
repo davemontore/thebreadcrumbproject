@@ -173,7 +173,7 @@ export default function Basket() {
           ) : (
             <div className="space-y-4">
               {entries.map((entry) => (
-                <div key={entry.id} className="bg-cream-5 border border-cream-10 rounded-lg p-6">
+                <div key={entry.id} className="bg-black border border-cream-10 rounded-lg p-6">
                   {editingId === entry.id ? (
                     <div className="space-y-4">
                       <input
@@ -211,10 +211,19 @@ export default function Basket() {
                     </div>
                   ) : (
                     <>
-                      {/* Title at the top */}
-                      {entry.title && (
-                        <h3 className="text-lg font-semibold text-cream mb-2" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>{entry.title}</h3>
-                      )}
+                      {/* Title and Edit button at the top */}
+                      <div className="flex justify-between items-start mb-2">
+                        {entry.title && (
+                          <h3 className="text-lg font-semibold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>{entry.title}</h3>
+                        )}
+                        <button
+                          onClick={() => startEditing(entry)}
+                          className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors flex-shrink-0"
+                          style={{ fontFamily: 'Cutive Mono, monospace' }}
+                        >
+                          Edit
+                        </button>
+                      </div>
                       
                       {/* Date underneath title */}
                       <div className="text-sm text-cream-60 mb-3" style={{ fontFamily: 'Special Elite, monospace' }}>
@@ -236,42 +245,31 @@ export default function Basket() {
                         </div>
                       )}
                       
-                      {/* Edit button and entry text */}
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <div className="text-cream leading-relaxed" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>
-                            {expandedItems.has(entry.id) ? (
-                              <div>
-                                <p className="whitespace-pre-wrap">{entry.text}</p>
-                                <button
-                                  onClick={() => toggleExpanded(entry.id)}
-                                  className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
-                                >
-                                  See Less
-                                </button>
-                              </div>
-                            ) : (
-                              <div>
-                                <p className="whitespace-pre-wrap line-clamp-3">{entry.text}</p>
-                                {isLongerThanPreview(entry.text) && (
-                                  <button
-                                    onClick={() => toggleExpanded(entry.id)}
-                                    className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
-                                  >
-                                    See More
-                                  </button>
-                                )}
-                              </div>
+                      {/* Entry text */}
+                      <div className="text-cream leading-relaxed" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>
+                        {expandedItems.has(entry.id) ? (
+                          <div>
+                            <p className="whitespace-pre-wrap">{entry.text}</p>
+                            <button
+                              onClick={() => toggleExpanded(entry.id)}
+                              className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                            >
+                              See Less
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="whitespace-pre-wrap line-clamp-3">{entry.text}</p>
+                            {isLongerThanPreview(entry.text) && (
+                              <button
+                                onClick={() => toggleExpanded(entry.id)}
+                                className="text-sm text-cream-60 hover:text-cream-80 mt-2 underline"
+                              >
+                                See More
+                              </button>
                             )}
                           </div>
-                        </div>
-                        <button
-                          onClick={() => startEditing(entry)}
-                          className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full hover:bg-cream-20 transition-colors ml-2 flex-shrink-0"
-                          style={{ fontFamily: 'Cutive Mono, monospace' }}
-                        >
-                          Edit
-                        </button>
+                        )}
                       </div>
                     </>
                   )}
