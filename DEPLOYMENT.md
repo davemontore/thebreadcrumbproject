@@ -30,7 +30,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 OPENAI_API_KEY=your_openai_api_key_here
 
 # Invitation Codes (comma-separated, no spaces)
-NEXT_PUBLIC_INVITATION_CODES=family2024,friends2024,trusted2024
+NEXT_PUBLIC_INVITATION_CODES=breadcrumb17
 ```
 
 ### 2. **Test Locally**

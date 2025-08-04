@@ -164,7 +164,7 @@ export default function Login() {
                   onChange={(e) => setInvitationCode(e.target.value)}
                   className="w-full p-3 border border-cream-30 rounded-xl focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200 bg-cream-10 text-cream text-center placeholder-cream-60 lowercase"
                   style={{ fontFamily: 'Cutive Mono, monospace' }}
-                  placeholder="invitation code (for new accounts)"
+                  placeholder="invitation code (new accounts)"
                   disabled={isLoading}
                   autoComplete="off"
                 />
