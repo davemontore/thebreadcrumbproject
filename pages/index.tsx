@@ -249,11 +249,19 @@ export default function Home() {
       console.log('Transcription API response status:', response.status)
 
       if (response.ok) {
-        const { transcription, tags } = await response.json()
+        const { transcription, tags, sentiment, emotions, highlights } = await response.json()
         console.log('Transcription received:', transcription)
+        console.log('Sentiment data:', { sentiment, emotions, highlights })
         
-        // Save to database
-        const result = await FirebaseService.createEntry(transcription, audioTitle.trim(), tags)
+        // Save to database with sentiment data
+        const result = await FirebaseService.createEntry(
+          transcription, 
+          audioTitle.trim(), 
+          tags, 
+          sentiment, 
+          emotions, 
+          highlights
+        )
         if (result) {
           console.log('Entry saved successfully')
           // Refresh entries
@@ -404,7 +412,7 @@ export default function Home() {
                 Logout
               </button>
               <button
-                onClick={() => router.push('/basket')}
+                onClick={() => router.push('/entries')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
                 <span className="text-xl" style={{ 

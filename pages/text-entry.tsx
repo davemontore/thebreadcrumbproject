@@ -62,7 +62,7 @@ export default function TextEntry() {
       
       if (result) {
         setNewEntry('')
-        router.push('/basket')
+        router.push('/entries')
       } else {
         console.error('TextEntry: Firebase returned null result')
         alert('Failed to save entry - please try again')

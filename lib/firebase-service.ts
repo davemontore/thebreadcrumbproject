@@ -8,6 +8,9 @@ export interface JournalEntry {
   text: string;
   timestamp: Date;
   tags?: string[];
+  sentiment?: string;
+  emotions?: string[];
+  highlights?: string[];
 }
 
 export class FirebaseService {
@@ -30,7 +33,7 @@ export class FirebaseService {
     }
   }
 
-  static async createEntry(text: string, title?: string, tags?: string[]): Promise<JournalEntry | null> {
+  static async createEntry(text: string, title?: string, tags?: string[], sentiment?: string, emotions?: string[], highlights?: string[]): Promise<JournalEntry | null> {
     try {
       console.log('FirebaseService: Attempting to create entry with text:', text);
       console.log('FirebaseService: Database instance:', db);
@@ -43,7 +46,10 @@ export class FirebaseService {
         text: text,
         title: title || '',
         timestamp: serverTimestamp(),
-        tags: tags || []
+        tags: tags || [],
+        sentiment: sentiment || 'neutral',
+        emotions: emotions || [],
+        highlights: highlights || []
       });
 
       console.log('FirebaseService: Entry created successfully with ID:', newEntryRef.key);
@@ -53,7 +59,10 @@ export class FirebaseService {
         title: title || '',
         text: text,
         timestamp: new Date(),
-        tags: tags || []
+        tags: tags || [],
+        sentiment: sentiment || 'neutral',
+        emotions: emotions || [],
+        highlights: highlights || []
       };
     } catch (error: any) {
       console.error('FirebaseService: Error creating entry:', error);
@@ -113,7 +122,10 @@ export class FirebaseService {
             title: data.title || '',
             text: data.text,
             timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
-            tags: data.tags || []
+            tags: data.tags || [],
+            sentiment: data.sentiment || 'neutral',
+            emotions: data.emotions || [],
+            highlights: data.highlights || []
           });
         });
       }
