@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { AssemblyAIService } from '../../lib/assemblyai'
-import { WhisperService } from '../../lib/whisper'
 import formidable, { Fields, Files } from 'formidable'
 
 export const config = {
@@ -88,14 +87,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         }
 
-        // Generate tags using OpenAI and combine with sentiment data
-        console.log('Transcribe API: Generating tags...')
-        const tags = await WhisperService.generateTags(transcription)
-        console.log('Transcribe API: Tags generated:', tags)
-
-        // Combine tags with sentiment and emotions for better searchability
+        // Use sentiment and emotions from AssemblyAI for tags
+        console.log('Transcribe API: Using AssemblyAI sentiment data...')
+        
+        // Combine sentiment and emotions for better searchability
         const allTags = [
-          ...tags,
           transcriptionResult.sentiment,
           ...transcriptionResult.emotions,
           ...transcriptionResult.highlights.slice(0, 2) // Add top 2 highlights as tags

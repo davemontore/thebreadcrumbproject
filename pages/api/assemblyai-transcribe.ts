@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Parse FormData using formidable
     const form = formidable({
-      maxFileSize: 25 * 1024 * 1024, // 25MB max
+      maxFileSize: 100 * 1024 * 1024, // 100MB max (increased for longer recordings)
       allowEmptyFiles: false,
     })
 
@@ -63,10 +63,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const audioBuffer = fs.readFileSync(file.filepath)
         console.log('AssemblyAI Transcribe API: Audio buffer size:', audioBuffer.length)
 
-        // Transcribe audio using AssemblyAI
-        console.log('AssemblyAI Transcribe API: Starting transcription...')
-        const transcription = await AssemblyAIService.transcribeAudioFile(audioBuffer)
-        console.log('AssemblyAI Transcribe API: Transcription completed:', transcription)
+        // Transcribe audio using AssemblyAI with sentiment analysis
+        console.log('AssemblyAI Transcribe API: Starting transcription with sentiment analysis...')
+        const transcriptionResult = await AssemblyAIService.transcribeAudioFile(audioBuffer)
+        console.log('AssemblyAI Transcribe API: Transcription completed:', transcriptionResult)
+        
+        const transcription = transcriptionResult.text
 
         if (!transcription || transcription.trim() === '') {
           console.warn('AssemblyAI Transcribe API: Empty transcription received')
@@ -76,15 +78,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         }
 
-        // Generate tags using OpenAI (reusing existing functionality)
-        console.log('AssemblyAI Transcribe API: Generating tags...')
-        const { WhisperService } = await import('../../lib/whisper')
-        const tags = await WhisperService.generateTags(transcription)
-        console.log('AssemblyAI Transcribe API: Tags generated:', tags)
+        // Use sentiment and emotions from AssemblyAI for tags
+        console.log('AssemblyAI Transcribe API: Using AssemblyAI sentiment data...')
+        
+        // Combine sentiment and emotions for better searchability
+        const allTags = [
+          transcriptionResult.sentiment,
+          ...transcriptionResult.emotions,
+          ...transcriptionResult.highlights.slice(0, 2) // Add top 2 highlights as tags
+        ].filter((tag, index, arr) => arr.indexOf(tag) === index) // Remove duplicates
 
         res.status(200).json({
           transcription,
-          tags,
+          tags: allTags,
+          sentiment: transcriptionResult.sentiment,
+          emotions: transcriptionResult.emotions,
+          highlights: transcriptionResult.highlights
         })
       } catch (error) {
         console.error('AssemblyAI Transcribe API: Error processing audio:', error)

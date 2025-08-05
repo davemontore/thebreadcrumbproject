@@ -277,7 +277,7 @@ export default function Home() {
         if (response.status === 500 && errorData.error?.includes('Invalid audio format')) {
           alert('FAILED: Audio format not supported. Please try using Chrome or Safari.')
         } else if (response.status === 401) {
-          alert('FAILED: API key error. Please check your OpenAI API key.')
+          alert('FAILED: API key error. Please check your AssemblyAI API key.')
         } else {
           alert(`FAILED: Transcription error (${response.status}). Please try again.`)
         }
