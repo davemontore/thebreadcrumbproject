@@ -125,4 +125,101 @@ export class WhisperService {
       return []
     }
   }
+
+  static async generateTagsWithGPT4(text: string): Promise<{
+    tags: string[];
+    sentiment: string;
+    emotions: string[];
+    highlights: string[];
+  }> {
+    try {
+      console.log('WhisperService: Starting GPT-4 analysis for text:', text.substring(0, 100) + '...')
+      
+      if (!process.env.OPENAI_API_KEY) {
+        console.warn('WhisperService: OpenAI API key not configured, skipping GPT-4 analysis')
+        return {
+          tags: [],
+          sentiment: 'neutral',
+          emotions: [],
+          highlights: []
+        }
+      }
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an intelligent journal analysis assistant. Analyze the given text and provide:
+
+1. TAGS: Generate 2-4 intelligent, topic-based tags (not just sentiment words). Focus on people, places, activities, themes, or specific topics mentioned. Return as comma-separated list.
+
+2. SENTIMENT: Overall emotional tone (positive, negative, neutral, mixed)
+
+3. EMOTIONS: Specific emotions detected (e.g., joy, frustration, excitement, concern, gratitude, etc.) - up to 3 emotions
+
+4. HIGHLIGHTS: Key phrases or important points mentioned - up to 2 highlights
+
+Return your response in this exact JSON format:
+{
+  "tags": ["tag1", "tag2", "tag3"],
+  "sentiment": "positive",
+  "emotions": ["emotion1", "emotion2"],
+  "highlights": ["highlight1", "highlight2"]
+}
+
+Only return valid JSON, no additional text.`
+          },
+          {
+            role: 'user',
+            content: `Analyze this journal entry: "${text}"`
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.3,
+      })
+
+      const analysisText = response.choices[0]?.message?.content || ''
+      console.log('WhisperService: Raw GPT-4 analysis response:', analysisText)
+      
+      try {
+        const analysis = JSON.parse(analysisText)
+        
+        // Validate and clean the response
+        const tags = Array.isArray(analysis.tags) ? analysis.tags.slice(0, 4) : []
+        const sentiment = analysis.sentiment || 'neutral'
+        const emotions = Array.isArray(analysis.emotions) ? analysis.emotions.slice(0, 3) : []
+        const highlights = Array.isArray(analysis.highlights) ? analysis.highlights.slice(0, 2) : []
+        
+        console.log('WhisperService: GPT-4 analysis completed:', { tags, sentiment, emotions, highlights })
+        
+        return {
+          tags,
+          sentiment,
+          emotions,
+          highlights
+        }
+      } catch (parseError) {
+        console.error('WhisperService: Error parsing GPT-4 response:', parseError)
+        console.error('WhisperService: Raw response was:', analysisText)
+        
+        // Fallback: generate basic tags
+        const fallbackTags = await this.generateTags(text)
+        return {
+          tags: fallbackTags,
+          sentiment: 'neutral',
+          emotions: [],
+          highlights: []
+        }
+      }
+    } catch (error) {
+      console.error('WhisperService: Error with GPT-4 analysis:', error)
+      return {
+        tags: [],
+        sentiment: 'neutral',
+        emotions: [],
+        highlights: []
+      }
+    }
+  }
 } 

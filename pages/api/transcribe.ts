@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { AssemblyAIService } from '../../lib/assemblyai'
+import { WhisperService } from '../../lib/whisper'
 import formidable, { Fields, Files } from 'formidable'
 
 export const config = {
@@ -13,10 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Check if AssemblyAI API key is configured
+  // Check if required API keys are configured
   if (!process.env.ASSEMBLYAI_API_KEY) {
     console.error('ASSEMBLYAI_API_KEY is not configured')
     return res.status(500).json({ error: 'AssemblyAI API key not configured' })
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY is not configured')
+    return res.status(500).json({ error: 'OpenAI API key not configured' })
   }
 
   try {
@@ -65,10 +71,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const audioBuffer = fs.readFileSync(file.filepath)
         console.log('Transcribe API: Audio buffer size:', audioBuffer.length)
 
-        // Transcribe audio using AssemblyAI with sentiment analysis
-        console.log('Transcribe API: Starting AssemblyAI transcription with sentiment analysis...')
+        // Step 1: Transcribe audio using AssemblyAI (for accuracy)
+        console.log('Transcribe API: Starting AssemblyAI transcription...')
         const transcriptionResult = await AssemblyAIService.transcribeAudioFile(audioBuffer)
-        console.log('Transcribe API: AssemblyAI transcription completed:', transcriptionResult)
+        console.log('Transcribe API: AssemblyAI transcription completed')
         
         const transcription = transcriptionResult.text
 
@@ -76,42 +82,68 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.warn('Transcribe API: Empty transcription received')
           return res.status(200).json({
             transcription: 'No speech detected',
-            tags: ['no-speech']
+            tags: ['no-speech'],
+            sentiment: 'neutral',
+            emotions: [],
+            highlights: []
           })
         }
 
-        // Generate intelligent tags using the transcription text, enhanced by sentiment context
-        console.log('Transcribe API: Generating intelligent tags with sentiment context...')
-        
-        // Import and use the tag generation logic directly to avoid internal API calls
-        const { generateTagsWithContext } = await import('./generate-tags-helper')
+        // Step 2: Use OpenAI GPT-4 for intelligent analysis and tagging
+        console.log('Transcribe API: Starting OpenAI GPT-4 analysis...')
         
         let tags: string[] = []
+        let sentiment = 'neutral'
+        let emotions: string[] = []
+        let highlights: string[] = []
+        
         try {
-          tags = await generateTagsWithContext(transcription, transcriptionResult.sentiment, transcriptionResult.emotions, transcriptionResult.highlights)
+          // Use GPT-4 for intelligent tag generation and analysis
+          const analysisResult = await WhisperService.generateTagsWithGPT4(transcription)
+          tags = analysisResult.tags
+          sentiment = analysisResult.sentiment
+          emotions = analysisResult.emotions
+          highlights = analysisResult.highlights
+          
+          console.log('Transcribe API: GPT-4 analysis completed:', { tags, sentiment, emotions, highlights })
         } catch (error) {
-          console.error('Transcribe API: Error generating tags, using fallback:', error)
-          // Fallback: use highlights and key phrases if tag generation fails
+          console.error('Transcribe API: Error with GPT-4 analysis, using AssemblyAI fallback:', error)
+          // Fallback: use AssemblyAI data if GPT-4 fails
           tags = [
             ...transcriptionResult.highlights.slice(0, 2),
             ...transcriptionResult.emotions.slice(0, 2)
           ].filter((tag, index, arr) => arr.indexOf(tag) === index && tag.length > 0)
+          sentiment = transcriptionResult.sentiment
+          emotions = transcriptionResult.emotions
+          highlights = transcriptionResult.highlights
         }
 
         res.status(200).json({
           transcription,
           tags: tags,
-          sentiment: transcriptionResult.sentiment,
-          emotions: transcriptionResult.emotions,
-          highlights: transcriptionResult.highlights
+          sentiment: sentiment,
+          emotions: emotions,
+          highlights: highlights
         })
       } catch (error) {
         console.error('Transcribe API: Error processing audio:', error)
         if (error instanceof Error) {
           if (error.message.includes('API key')) {
-            res.status(500).json({ error: 'Invalid AssemblyAI API key' })
+            if (error.message.includes('AssemblyAI')) {
+              res.status(500).json({ error: 'Invalid AssemblyAI API key' })
+            } else if (error.message.includes('OpenAI')) {
+              res.status(500).json({ error: 'Invalid OpenAI API key' })
+            } else {
+              res.status(500).json({ error: 'API key configuration error' })
+            }
           } else if (error.message.includes('quota')) {
-            res.status(500).json({ error: 'AssemblyAI API quota exceeded' })
+            if (error.message.includes('AssemblyAI')) {
+              res.status(500).json({ error: 'AssemblyAI API quota exceeded' })
+            } else if (error.message.includes('OpenAI')) {
+              res.status(500).json({ error: 'OpenAI API quota exceeded' })
+            } else {
+              res.status(500).json({ error: 'API quota exceeded' })
+            }
           } else if (error.message.includes('Invalid audio format')) {
             console.error('Transcribe API: Audio format error details:', error.message)
             res.status(500).json({ error: `Invalid audio format: ${error.message}` })
