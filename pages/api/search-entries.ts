@@ -68,9 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const matchingEntries = allEntries.filter(entry => {
       const titleMatch = entry.title?.toLowerCase().includes(searchQuery) || false
       const textMatch = entry.text.toLowerCase().includes(searchQuery) || false
-      const tagsMatch = entry.tags?.some(tag => tag.toLowerCase().includes(searchQuery)) || false
+      const tagsMatch = entry.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery)) || false
       const sentimentMatch = entry.sentiment?.toLowerCase().includes(searchQuery) || false
-      const emotionsMatch = entry.emotions?.some(emotion => emotion.toLowerCase().includes(searchQuery)) || false
+      const emotionsMatch = entry.emotions?.some((emotion: string) => emotion.toLowerCase().includes(searchQuery)) || false
       
       if (titleMatch || textMatch || tagsMatch || sentimentMatch || emotionsMatch) {
         console.log('Search API: Found match in entry:', entry.id, {
