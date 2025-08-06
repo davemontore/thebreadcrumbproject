@@ -144,6 +144,7 @@ export default function Basket() {
     setSearchQuery(query)
 
     try {
+      console.log('Basket: Searching for:', query)
       const response = await fetch('/api/search-entries', {
         method: 'POST',
         headers: {
@@ -154,6 +155,7 @@ export default function Basket() {
 
       if (response.ok) {
         const { entries: results, total, hasMore: moreResults } = await response.json()
+        console.log('Basket: Search results:', { results: results.length, total, moreResults })
         setSearchResults(results)
         setHasMore(moreResults)
         setCurrentOffset(20)
@@ -273,7 +275,7 @@ export default function Basket() {
                     handleSearch(query)
                   }, 300)
                 }}
-                className="w-full p-3 border border-cream-30 rounded-lg bg-cream-10 text-cream placeholder-cream-60 focus:ring-2 focus:ring-cream-50 focus:border-transparent transition-all duration-200"
+                className="w-full p-3 border border-cream-30 rounded-lg bg-cream-10 text-cream placeholder-cream-60 focus:border-2 focus:border-cream-50 transition-all duration-200"
                 style={{ fontFamily: 'Cutive Mono, monospace' }}
               />
               {isSearching && (
