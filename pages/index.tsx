@@ -179,11 +179,7 @@ export default function Home() {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100
-        } 
+        audio: true
       })
       console.log('Audio stream obtained successfully')
       
@@ -210,20 +206,24 @@ export default function Home() {
       setIsRecording(true)
       setIsPaused(false)
       console.log('RecordRTC recording started successfully')
-    } catch (error) {
-      console.error('Error starting recording:', error)
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          alert('ERROR: Microphone access denied. Please allow microphone access and try again.')
-        } else if (error.name === 'NotFoundError') {
-          alert('ERROR: No microphone found. Please connect a microphone and try again.')
-        } else {
-          alert(`ERROR: ${error.message}`)
-        }
-      } else {
-        alert('ERROR: Failed to start recording. Please try again.')
-      }
-    }
+         } catch (error) {
+       console.error('Error starting recording:', error)
+       if (error instanceof Error) {
+         if (error.name === 'NotAllowedError') {
+           alert('ERROR: Microphone access denied. Please allow microphone access and try again.')
+         } else if (error.name === 'NotFoundError') {
+           alert('ERROR: No microphone found. Please connect a microphone and try again.')
+         } else if (error.name === 'NotReadableError') {
+           alert('ERROR: Microphone is in use by another application. Please close other apps using your microphone (Zoom, Teams, etc.) and try again.')
+         } else if (error.name === 'NotSupportedError') {
+           alert('ERROR: Audio recording is not supported in this browser. Please try Chrome, Firefox, or Safari.')
+         } else {
+           alert(`ERROR: ${error.message}`)
+         }
+       } else {
+         alert('ERROR: Failed to start recording. Please try again.')
+       }
+     }
   }
 
   // Process audio blob (transcription and saving)
