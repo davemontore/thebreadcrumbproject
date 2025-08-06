@@ -126,6 +126,92 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+## CRITICAL: FormData Parsing Issues
+
+### The "Invalid Audio Format" Problem
+
+**Symptoms:**
+- "Invalid audio format" errors from Whisper API
+- Audio recording works but transcription fails
+- Server receives malformed binary data instead of proper audio file
+
+**Root Cause:**
+The server/API handler is not correctly interpreting the FormData object sent from the client. Instead of extracting the file from the FormData fields, it's receiving the entire FormData payload as if it were a single, raw binary file.
+
+### How FormData Works
+
+When you create FormData on the client and append a file, it's sent with a `Content-Type: multipart/form-data` header. The body contains multiple parts, each with its own Content-Disposition and Content-Type.
+
+**Example FormData structure:**
+```
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXYZ
+
+------WebKitFormBoundaryXYZ
+Content-Disposition: form-data; name="audio_file"; filename="recording.webm"
+Content-Type: audio/webm
+
+[Binary data of your WEBM file]
+------WebKitFormBoundaryXYZ--
+```
+
+### The Solution: Proper FormData Parsing
+
+**For Next.js API Routes (Our Implementation):**
+
+1. **Disable default body parser:**
+```javascript
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+```
+
+2. **Use formidable for parsing:**
+```javascript
+import formidable, { Fields, Files } from 'formidable'
+
+const form = formidable({
+  maxFileSize: 100 * 1024 * 1024, // 100MB max
+  allowEmptyFiles: false,
+})
+
+form.parse(req, async (err: any, fields: Fields, files: Files) => {
+  if (err) {
+    return res.status(400).json({ error: 'Failed to parse form data' })
+  }
+
+  const audioFile = files.audio
+  const file = Array.isArray(audioFile) ? audioFile[0] : audioFile
+  
+  // Read the file buffer
+  const fs = require('fs')
+  const audioBuffer = fs.readFileSync(file.filepath)
+  
+  // Now pass audioBuffer to transcription service
+})
+```
+
+**Key Points:**
+- **NEVER** use Next.js default body parser for file uploads
+- **ALWAYS** use `formidable` or similar multipart parser
+- **ALWAYS** disable `bodyParser` in API config
+- **ALWAYS** read file as buffer using `fs.readFileSync()`
+
+### Common Mistakes to Avoid
+
+1. **Using default body parser** - This treats FormData as raw binary
+2. **Not disabling bodyParser** - Causes parsing conflicts
+3. **Direct FormData access** - Won't work without proper parsing
+4. **Wrong field names** - Must match what client sends
+
+### Testing the Fix
+
+1. **Check server logs** for "Form parsed successfully"
+2. **Verify file details** are logged correctly
+3. **Confirm audioBuffer size** is reasonable
+4. **Test transcription** works after parsing
+
 ## Still Having Issues?
 
 1. **Check the test page**: `/test-audio.html`
