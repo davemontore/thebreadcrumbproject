@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         res.status(200).json({
           transcription,
-          tags: allTags,
+          tags: tags,
           sentiment: transcriptionResult.sentiment,
           emotions: transcriptionResult.emotions,
           highlights: transcriptionResult.highlights
