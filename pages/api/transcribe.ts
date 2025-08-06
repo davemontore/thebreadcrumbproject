@@ -65,13 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const audioBuffer = fs.readFileSync(file.filepath)
         console.log('Transcribe API: Audio buffer size:', audioBuffer.length)
 
-        // Create blob with proper type
-        const audioType = file.mimetype || 'audio/webm'
-        console.log('Transcribe API: Using audio type:', audioType)
-        
-        const audioBlob = new Blob([audioBuffer], { type: audioType })
-        console.log('Transcribe API: Audio blob created, size:', audioBlob.size)
-
         // Transcribe audio using AssemblyAI with sentiment analysis
         console.log('Transcribe API: Starting AssemblyAI transcription with sentiment analysis...')
         const transcriptionResult = await AssemblyAIService.transcribeAudioFile(audioBuffer)

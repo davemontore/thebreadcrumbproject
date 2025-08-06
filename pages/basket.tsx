@@ -4,7 +4,7 @@ import Head from 'next/head'
 import { FirebaseAuthService } from '../lib/firebase-auth'
 import { FirebaseService, JournalEntry } from '../lib/firebase-service'
 
-export default function Entries() {
+export default function Basket() {
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [user, setUser] = useState<boolean>(false)
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
@@ -48,7 +48,7 @@ export default function Entries() {
       // Load entries from database
       try {
         const entries = await FirebaseService.getEntries()
-        console.log('Entries: Loaded entries:', entries)
+        console.log('Basket: Loaded entries:', entries)
         setEntries(entries)
       } catch (error) {
         console.error('Error loading entries:', error)
@@ -232,7 +232,7 @@ export default function Entries() {
   return (
     <>
       <Head>
-        <title>Entries - Write Here. Right Now</title>
+        <title>Basket - Write Here. Right Now</title>
         <meta name="description" content="View your journal entries" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
@@ -253,7 +253,7 @@ export default function Entries() {
               </button>
             </div>
             <div className="text-center">
-              <h1 className="text-5xl sm:text-6xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Entries</h1>
+              <h1 className="text-5xl sm:text-6xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Basket</h1>
             </div>
           </div>
 

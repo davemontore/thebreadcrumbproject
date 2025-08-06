@@ -43,8 +43,13 @@ export class AssemblyAIService {
         throw new Error('AssemblyAI API key not configured')
       }
 
+      // First upload the audio file
+      const uploadUrl = await client.files.upload(audioBuffer)
+      console.log('AssemblyAIService: Audio file uploaded:', uploadUrl)
+
+      // Then create transcript with the uploaded file URL
       const transcript = await client.transcripts.create({
-        audio: audioBuffer,
+        audio_url: uploadUrl,
         speaker_labels: true,
         auto_highlights: true,
         entity_detection: true,
@@ -53,10 +58,10 @@ export class AssemblyAIService {
 
       console.log('AssemblyAIService: Transcription completed with sentiment analysis')
       
-      // Extract sentiment and emotions
-      const sentiment = transcript.sentiment_analysis?.overall || 'neutral'
-      const emotions = transcript.sentiment_analysis?.sentiments?.map(s => s.sentiment) || []
-      const highlights = transcript.auto_highlights?.results?.map(h => h.text) || []
+      // Extract sentiment and emotions with proper type checking
+      const sentiment = (transcript.sentiment_analysis as any)?.overall || 'neutral'
+      const emotions = (transcript.sentiment_analysis as any)?.sentiments?.map((s: any) => s.sentiment) || []
+      const highlights = (transcript.auto_highlights as any)?.results?.map((h: any) => h.text) || []
       
       return {
         text: transcript.text || '',

@@ -412,7 +412,7 @@ export default function Home() {
                 Logout
               </button>
               <button
-                onClick={() => router.push('/entries')}
+                onClick={() => router.push('/basket')}
                 className="px-4 py-2 bg-cream-10 border border-cream-30 rounded-lg text-cream hover:bg-cream-20 transition-colors"
               >
                 <span className="text-xl" style={{ 
