@@ -28,6 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       emotions: entry.emotions
     })))
     
+    // Convert query to lowercase for case-insensitive search
+    const searchQuery = query.toLowerCase()
+    
     // Debug: Check if any entries contain the search term
     console.log('Search API: Looking for term:', searchQuery)
     allEntries.forEach((entry, index) => {
@@ -35,9 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log(`Search API: Found "${searchQuery}" in entry ${index}:`, entry.text.substring(0, 100) + '...')
       }
     })
-    
-    // Convert query to lowercase for case-insensitive search
-    const searchQuery = query.toLowerCase()
     
     // Search through titles, text, tags, and sentiment
     const matchingEntries = allEntries.filter(entry => {
