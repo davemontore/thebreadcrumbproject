@@ -2,6 +2,30 @@
 
 All notable changes to The Breadcrumb Project will be documented in this file.
 
+## [1.1.0] - 2024-12-19
+
+### Added
+- **Hybrid AssemblyAI + OpenAI GPT-4 Workflow**
+  - AssemblyAI for accurate audio transcription (supports longer recordings)
+  - OpenAI GPT-4 for intelligent analysis and contextual tagging
+  - Intelligent topic-based tags instead of basic sentiment analysis
+  - Robust fallback system (AssemblyAI data if GPT-4 fails)
+  - Enhanced sentiment analysis with nuanced emotions
+  - Key highlights extraction from journal entries
+
+- **Advanced Search Functionality**
+  - Full-text search across journal entries
+  - Search by tags, sentiment, emotions, and highlights
+  - Debounced search with real-time results
+  - Search results pagination and "Load More" functionality
+  - Search bar with cream-colored focus styling
+
+- **Enhanced Entry Management**
+  - Edit functionality for existing journal entries
+  - Automatic tag regeneration when entries are edited
+  - Improved entry display with sentiment and emotion indicators
+  - Better mobile-responsive entry layout
+
 ## [1.0.0] - 2024-12-19
 
 ### Added

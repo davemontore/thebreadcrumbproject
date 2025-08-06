@@ -6,11 +6,13 @@ A secure, multi-user journaling app that helps you capture meaningful moments in
 
 ## ✨ Features
 
-- 🎤 **Voice Recording**: Record your thoughts with AI-powered transcription
+- 🎤 **Voice Recording**: Record your thoughts with world-class AI transcription
 - ✍️ **Text Entry**: Write your thoughts directly with rich text support
 - 🔐 **Secure Authentication**: Firebase Auth with invitation code system
 - 📱 **Real-time Sync**: Your entries sync across all devices instantly
-- 🏷️ **Smart Tagging**: AI-generated tags help organize your thoughts
+- 🏷️ **Intelligent Tagging**: GPT-4 powered contextual tags and analysis
+- 🔍 **Advanced Search**: Full-text search across all your entries
+- ✏️ **Edit Entries**: Modify existing entries with automatic tag regeneration
 - 📖 **Entries View**: View all your entries in a beautiful interface
 - 📱 **Mobile Responsive**: Works perfectly on desktop and mobile
 
@@ -56,7 +58,7 @@ A secure, multi-user journaling app that helps you capture meaningful moments in
 - **Styling**: Tailwind CSS
 - **Database**: Firebase Realtime Database
 - **Authentication**: Firebase Auth
-- **AI Transcription**: OpenAI Whisper API
+- **AI Transcription**: AssemblyAI + OpenAI GPT-4 hybrid workflow
 - **Deployment**: Vercel
 - **Icons**: Heroicons, Lucide React
 

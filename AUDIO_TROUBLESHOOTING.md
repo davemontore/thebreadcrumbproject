@@ -122,8 +122,11 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
 
-# Whisper API (for voice transcription)
+# OpenAI API (for GPT-4 analysis and Whisper transcription)
 OPENAI_API_KEY=your_openai_api_key_here
+
+# AssemblyAI API (for accurate audio transcription)
+ASSEMBLYAI_API_KEY=your_assemblyai_api_key_here
 ```
 
 ## CRITICAL: FormData Parsing Issues
