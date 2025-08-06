@@ -15,6 +15,7 @@ export default function Basket() {
   const [isMobile, setIsMobile] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
+  const [isPreparingSearch, setIsPreparingSearch] = useState(false)
   const [searchResults, setSearchResults] = useState<JournalEntry[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -131,8 +132,24 @@ export default function Basket() {
     return false
   }
 
-  // Search functionality
-  const handleSearch = async (query: string) => {
+  // Prepare search by loading all entries if needed
+  const prepareSearch = async () => {
+    if (entries.length === 0) {
+      setIsPreparingSearch(true)
+      try {
+        const allEntries = await FirebaseService.getEntries()
+        setEntries(allEntries)
+        console.log('Basket: Prepared search with', allEntries.length, 'entries')
+      } catch (error) {
+        console.error('Error preparing search:', error)
+      } finally {
+        setIsPreparingSearch(false)
+      }
+    }
+  }
+
+  // Local search functionality
+  const handleSearch = (query: string) => {
     if (!query.trim()) {
       setSearchResults([])
       setSearchQuery('')
@@ -143,66 +160,27 @@ export default function Basket() {
     setIsSearching(true)
     setSearchQuery(query)
 
-    try {
-      console.log('Basket: Searching for:', query)
-      const response = await fetch('/api/search-entries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query, limit: 20, offset: 0 }),
-      })
+    // Search through titles, text, tags, and sentiment
+    const searchQuery = query.toLowerCase()
+    const matchingEntries = entries.filter(entry => {
+      const titleMatch = entry.title?.toLowerCase().includes(searchQuery) || false
+      const textMatch = entry.text.toLowerCase().includes(searchQuery) || false
+      const tagsMatch = entry.tags?.some(tag => tag.toLowerCase().includes(searchQuery)) || false
+      const sentimentMatch = entry.sentiment?.toLowerCase().includes(searchQuery) || false
+      const emotionsMatch = entry.emotions?.some(emotion => emotion.toLowerCase().includes(searchQuery)) || false
+      
+      return titleMatch || textMatch || tagsMatch || sentimentMatch || emotionsMatch
+    })
 
-      if (response.ok) {
-        const { entries: results, total, hasMore: moreResults } = await response.json()
-        console.log('Basket: Search results:', { results: results.length, total, moreResults })
-        console.log('Basket: First few results:', results.slice(0, 2))
-        setSearchResults(results)
-        setHasMore(moreResults)
-        setCurrentOffset(20)
-      } else {
-        console.error('Search failed:', response.status)
-        const errorText = await response.text()
-        console.error('Search error details:', errorText)
-        setSearchResults([])
-      }
-    } catch (error) {
-      console.error('Error searching:', error)
-      setSearchResults([])
-    } finally {
-      setIsSearching(false)
-    }
+    console.log('Basket: Local search found', matchingEntries.length, 'matches for:', query)
+    setSearchResults(matchingEntries)
+    setIsSearching(false)
   }
 
-  // Load more search results
+  // Load more search results (not needed for local search, but keeping for compatibility)
   const loadMoreSearchResults = async () => {
-    if (!searchQuery.trim() || isLoadingMore) return
-
-    setIsLoadingMore(true)
-    try {
-      const response = await fetch('/api/search-entries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          query: searchQuery, 
-          limit: 20, 
-          offset: currentOffset 
-        }),
-      })
-
-      if (response.ok) {
-        const { entries: moreResults, hasMore: moreResultsAvailable } = await response.json()
-        setSearchResults(prev => [...prev, ...moreResults])
-        setHasMore(moreResultsAvailable)
-        setCurrentOffset(prev => prev + 20)
-      }
-    } catch (error) {
-      console.error('Error loading more results:', error)
-    } finally {
-      setIsLoadingMore(false)
-    }
+    // Local search shows all results at once, so this is not needed
+    console.log('Load more not needed for local search')
   }
 
   // Infinite scroll for regular entries
@@ -265,27 +243,33 @@ export default function Basket() {
           {/* Search Bar */}
           <div className="mb-8">
             <div className="relative max-w-md mx-auto">
-              <input
-                type="text"
-                placeholder="search..."
-                value={searchQuery}
-                onChange={(e) => {
-                  const query = e.target.value
-                  setSearchQuery(query)
-                  // Debounce search
-                  clearTimeout((window as any).searchTimeout)
-                  ;(window as any).searchTimeout = setTimeout(() => {
-                    handleSearch(query)
-                  }, 300)
-                }}
-                className="w-full p-3 border border-cream-30 rounded-lg bg-cream-10 text-cream placeholder-cream-60 focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
-                style={{ fontFamily: 'Cutive Mono, monospace' }}
-              />
-              {isSearching && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cream-60">
-                  Searching...
-                </div>
-              )}
+                             <input
+                 type="text"
+                 placeholder="search..."
+                 value={searchQuery}
+                 onFocus={() => prepareSearch()}
+                 onChange={(e) => {
+                   const query = e.target.value
+                   setSearchQuery(query)
+                   // Debounce search
+                   clearTimeout((window as any).searchTimeout)
+                   ;(window as any).searchTimeout = setTimeout(() => {
+                     handleSearch(query)
+                   }, 300)
+                 }}
+                 className="w-full p-3 border border-cream-30 rounded-lg bg-cream-10 text-cream placeholder-cream-60 focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
+                 style={{ fontFamily: 'Cutive Mono, monospace' }}
+               />
+                             {isPreparingSearch && (
+                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cream-60">
+                   One sec while we get things ready...
+                 </div>
+               )}
+               {isSearching && !isPreparingSearch && (
+                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cream-60">
+                   Searching...
+                 </div>
+               )}
             </div>
           </div>
 
@@ -308,13 +292,13 @@ export default function Basket() {
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           placeholder="Title (optional)"
-                          className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
+                          className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
                           style={{ fontFamily: 'Cutive Mono, monospace' }}
                         />
                         <textarea
                           value={editText}
                           onChange={(e) => setEditText(e.target.value)}
-                          className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
+                          className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
                           style={{ fontFamily: 'Cutive Mono, monospace' }}
                           rows={6}
                         />
@@ -447,21 +431,21 @@ export default function Basket() {
                 <div key={entry.id} className="bg-black border border-cream-10 rounded-lg p-6">
                   {editingId === entry.id ? (
                     <div className="space-y-4">
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        placeholder="Title (optional)"
-                                                  className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
-                        style={{ fontFamily: 'Cutive Mono, monospace' }}
-                      />
-                      <textarea
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                                                  className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
-                        style={{ fontFamily: 'Cutive Mono, monospace' }}
-                        rows={6}
-                      />
+                                             <input
+                         type="text"
+                         value={editTitle}
+                         onChange={(e) => setEditTitle(e.target.value)}
+                         placeholder="Title (optional)"
+                         className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
+                         style={{ fontFamily: 'Cutive Mono, monospace' }}
+                       />
+                       <textarea
+                         value={editText}
+                         onChange={(e) => setEditText(e.target.value)}
+                         className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
+                         style={{ fontFamily: 'Cutive Mono, monospace' }}
+                         rows={6}
+                       />
                       <div className="flex gap-2">
                         <button
                           onClick={saveEdit}

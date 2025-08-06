@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { FirebaseService } from '../../lib/firebase-service'
+import { db } from '../../lib/firebase'
+import { ref, get } from 'firebase/database'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -7,16 +8,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { query, limit = 20, offset = 0 } = req.body
+    const { query, limit = 20, offset = 0, userId } = req.body
 
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ error: 'Search query is required' })
     }
 
-    console.log('Search API: Searching for:', query)
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ error: 'User ID is required' })
+    }
 
-    // Get all entries and filter them
-    const allEntries = await FirebaseService.getEntries()
+    console.log('Search API: Searching for:', query, 'for user:', userId)
+
+    // Get all entries for this specific user directly from Firebase
+    const userEntriesRef = ref(db, `users/${userId}/journal_entries`)
+    const snapshot = await get(userEntriesRef)
+    
+    console.log('Search API: Firebase query completed, entries exist:', snapshot.exists())
+    
+    const allEntries: any[] = []
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val()
+        allEntries.push({
+          id: childSnapshot.key || '',
+          title: data.title || '',
+          text: data.text,
+          timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
+          tags: data.tags || [],
+          sentiment: data.sentiment || 'neutral',
+          emotions: data.emotions || [],
+          highlights: data.highlights || []
+        })
+      })
+    }
     
     console.log('Search API: Total entries retrieved:', allEntries.length)
     console.log('Search API: Sample entry data:', allEntries.slice(0, 2).map(entry => ({
