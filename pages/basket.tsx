@@ -156,11 +156,14 @@ export default function Basket() {
       if (response.ok) {
         const { entries: results, total, hasMore: moreResults } = await response.json()
         console.log('Basket: Search results:', { results: results.length, total, moreResults })
+        console.log('Basket: First few results:', results.slice(0, 2))
         setSearchResults(results)
         setHasMore(moreResults)
         setCurrentOffset(20)
       } else {
         console.error('Search failed:', response.status)
+        const errorText = await response.text()
+        console.error('Search error details:', errorText)
         setSearchResults([])
       }
     } catch (error) {
@@ -275,7 +278,7 @@ export default function Basket() {
                     handleSearch(query)
                   }, 300)
                 }}
-                className="w-full p-3 border border-cream-30 rounded-lg bg-cream-10 text-cream placeholder-cream-60 focus:border-2 focus:border-cream-50 transition-all duration-200"
+                className="w-full p-3 border border-cream-30 rounded-lg bg-cream-10 text-cream placeholder-cream-60 focus:outline-none focus:border-2 focus:border-cream-50 transition-all duration-200"
                 style={{ fontFamily: 'Cutive Mono, monospace' }}
               />
               {isSearching && (
