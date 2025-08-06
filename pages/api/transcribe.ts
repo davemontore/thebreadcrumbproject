@@ -80,15 +80,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         }
 
-        // Use sentiment and emotions from AssemblyAI for tags
-        console.log('Transcribe API: Using AssemblyAI sentiment data...')
+        // Generate intelligent tags using the transcription text, enhanced by sentiment context
+        console.log('Transcribe API: Generating intelligent tags with sentiment context...')
         
-        // Combine sentiment and emotions for better searchability
-        const allTags = [
-          transcriptionResult.sentiment,
-          ...transcriptionResult.emotions,
-          ...transcriptionResult.highlights.slice(0, 2) // Add top 2 highlights as tags
-        ].filter((tag, index, arr) => arr.indexOf(tag) === index) // Remove duplicates
+        // Import and use the tag generation logic directly to avoid internal API calls
+        const { generateTagsWithContext } = await import('./generate-tags-helper')
+        
+        let tags: string[] = []
+        try {
+          tags = await generateTagsWithContext(transcription, transcriptionResult.sentiment, transcriptionResult.emotions, transcriptionResult.highlights)
+        } catch (error) {
+          console.error('Transcribe API: Error generating tags, using fallback:', error)
+          // Fallback: use highlights and key phrases if tag generation fails
+          tags = [
+            ...transcriptionResult.highlights.slice(0, 2),
+            ...transcriptionResult.emotions.slice(0, 2)
+          ].filter((tag, index, arr) => arr.indexOf(tag) === index && tag.length > 0)
+        }
 
         res.status(200).json({
           transcription,
