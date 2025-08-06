@@ -308,13 +308,13 @@ export default function Basket() {
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           placeholder="Title (optional)"
-                          className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream"
+                          className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
                           style={{ fontFamily: 'Cutive Mono, monospace' }}
                         />
                         <textarea
                           value={editText}
                           onChange={(e) => setEditText(e.target.value)}
-                          className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream"
+                          className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
                           style={{ fontFamily: 'Cutive Mono, monospace' }}
                           rows={6}
                         />
@@ -384,7 +384,7 @@ export default function Basket() {
                           <div className="flex flex-wrap gap-1 mb-3">
                             {entry.tags.slice(0, 4).map((tag, index) => (
                               <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full" style={{ fontFamily: 'Cutive Mono, monospace' }}>
-                                {tag}
+                                {tag.startsWith('#') ? tag.substring(1) : tag}
                               </span>
                             ))}
                           </div>
@@ -452,13 +452,13 @@ export default function Basket() {
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
                         placeholder="Title (optional)"
-                        className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream"
+                                                  className="w-full p-2 border border-cream-30 rounded bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
                         style={{ fontFamily: 'Cutive Mono, monospace' }}
                       />
                       <textarea
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
-                        className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream"
+                                                  className="w-full p-4 border border-cream-30 rounded resize-none bg-cream-10 text-cream focus:outline-none focus:border-cream-50"
                         style={{ fontFamily: 'Cutive Mono, monospace' }}
                         rows={6}
                       />
@@ -512,7 +512,7 @@ export default function Basket() {
                         <div className="flex flex-wrap gap-1 mb-3">
                           {entry.tags.slice(0, 4).map((tag, index) => (
                             <span key={index} className="text-xs bg-cream-10 text-cream-80 px-2 py-1 rounded-full" style={{ fontFamily: 'Cutive Mono, monospace' }}>
-                              {tag}
+                              {tag.startsWith('#') ? tag.substring(1) : tag}
                             </span>
                           ))}
                         </div>
