@@ -103,11 +103,14 @@ export default function Basket() {
       }
 
       const success = await FirebaseService.updateEntry(editingId, editText.trim(), editTitle.trim(), newTags)
-      
+
       if (success) {
-        // Refresh entries
-        const entries = await FirebaseService.getEntries()
-        setEntries(entries)
+        const targetId = editingId
+        setEntries(prev => prev.map(e => 
+          e.id === targetId 
+            ? { ...e, text: editText.trim(), title: editTitle.trim(), tags: newTags }
+            : e
+        ))
         cancelEditing()
       } else {
         alert('Failed to update entry')
@@ -215,7 +218,7 @@ export default function Basket() {
   return (
     <>
       <Head>
-        <title>Basket - Write Here. Right Now</title>
+        <title>Entries - Write Here. Right Now</title>
         <meta name="description" content="View your journal entries" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
@@ -236,7 +239,7 @@ export default function Basket() {
               </button>
             </div>
             <div className="text-center">
-              <h1 className="text-5xl sm:text-6xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Basket</h1>
+              <h1 className="text-5xl sm:text-6xl font-bold text-cream" style={{ fontFamily: 'IM Fell Double Pica, serif' }}>Entries</h1>
             </div>
           </div>
 
