@@ -2,6 +2,48 @@
 
 All notable changes to The Breadcrumb Project will be documented in this file.
 
+## [1.3.0] - 2025-08-10
+
+### Changed
+- Renamed "Basket" page text to "Entries" (browser tab title and on‑screen heading) without altering routes.
+
+### Performance
+- Optimized edit save on Entries page (mobile): after a successful update, the UI now updates the edited entry locally instead of reloading all entries. This removes perceived hangs on iPhone while preserving behavior and design.
+
+### Improved
+- Typed-entry tagging now uses the same AI analysis as audio entries (with safe fallback). Sentiment-only words are filtered and tags remain capped at four.
+
+### Notes
+- AI-based tagging may add ~1–3 seconds on save depending on network and model latency. See future optimization options in PR discussion.
+
+## [1.2.0] - 2024-12-19
+
+### Fixed
+- **Search Functionality**
+  - Fixed broken search that returned no results
+  - Implemented local search with instant results
+  - Added "One sec while we get things ready..." loading message
+  - Search now works through titles, text, tags, sentiment, and emotions
+  - Removed server-side authentication complexity
+
+- **Edit Mode Styling**
+  - Fixed blue border issue on edit title and body text boxes
+  - Implemented consistent bold cream border styling
+  - Added smooth transitions for focus states
+  - Matches search bar styling for visual consistency
+
+### Technical Improvements
+- **Search Architecture**
+  - Switched from server-side API search to client-side local search
+  - Eliminated authentication context issues in API routes
+  - Improved performance with instant search results
+  - Maintained user data isolation and security
+
+- **Code Quality**
+  - Fixed TypeScript build errors in search API
+  - Improved error handling and debugging logs
+  - Better separation of concerns between frontend and backend
+
 ## [1.1.0] - 2024-12-19
 
 ### Added
