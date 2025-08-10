@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { WhisperService } from '../../lib/whisper'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -18,6 +19,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     let tags: string[] = []
+
+    const isSentimentLike = (tag: string): boolean => {
+      const t = tag.toLowerCase().trim()
+      const banned = new Set([
+        'positive', 'negative', 'neutral', 'mixed',
+        'joy', 'sadness', 'anger', 'fear', 'disgust', 'surprise', 'trust', 'anticipation', 'confusion', 'frustration', 'excitement', 'concern', 'gratitude'
+      ])
+      return banned.has(t)
+    }
 
     // If we have AssemblyAI sentiment data, use it to enhance tag generation
     if (sentiment && emotions && highlights) {
@@ -47,19 +57,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       tags = Array.from(new Set(allPotentialTags)).slice(0, 4)
       
     } else {
-      // Fallback to basic text analysis for manual entries
-      console.log('Generate Tags API: Using basic text analysis')
-      const words = text.toLowerCase().split(/\s+/)
-      const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their'])
-      
-      const meaningfulWords = words.filter((word: string) => 
-        word.length > 3 && 
-        !commonWords.has(word) && 
-        /^[a-zA-Z]+$/.test(word)
-      )
-      
-      const uniqueWords = Array.from(new Set(meaningfulWords))
-      tags = uniqueWords.slice(0, 4)
+      // Manual text entry: Prefer GPT-4 analysis when available; fallback to basic method
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          console.log('Generate Tags API: Using GPT-4 analysis for manual text')
+          const analysis = await WhisperService.generateTagsWithGPT4(text)
+          const aiTags = Array.isArray(analysis.tags) ? analysis.tags : []
+          tags = Array.from(new Set(aiTags
+            .map(t => t.trim())
+            .filter(t => t.length > 0 && !isSentimentLike(t))
+          )).slice(0, 4)
+        } catch (err) {
+          console.error('Generate Tags API: GPT-4 analysis failed, falling back to basic method:', err)
+        }
+      }
+
+      if (tags.length === 0) {
+        console.log('Generate Tags API: Using basic text analysis (fallback)')
+        const words = text.toLowerCase().split(/\s+/)
+        const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their'])
+        const meaningfulWords = words.filter((word: string) => 
+          word.length > 3 && 
+          !commonWords.has(word) && 
+          /^[a-zA-Z]+$/.test(word)
+        )
+        const uniqueWords = Array.from(new Set(meaningfulWords))
+        tags = uniqueWords.filter(w => !isSentimentLike(w)).slice(0, 4)
+      }
     }
     
     // If no meaningful tags found, use default tags
