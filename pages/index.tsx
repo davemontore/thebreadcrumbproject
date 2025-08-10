@@ -342,25 +342,10 @@ export default function Home() {
 
     setIsSubmitting(true)
     try {
-      console.log('Index: Starting text submission:', textEntry.trim())
-      
-      // Generate tags for text entry
-      const response = await fetch('/api/generate-tags', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: textEntry.trim() }),
-      })
+      console.log('Index: Starting text submission (save-first):', textEntry.trim())
 
-      let tags: string[] = []
-      
-      if (response.ok) {
-        const { tags: generatedTags } = await response.json()
-        tags = generatedTags
-      }
-
-      const result = await FirebaseService.createEntry(textEntry.trim(), textTitle.trim(), tags)
+      // Save entry immediately with temporary/no tags
+      const result = await FirebaseService.createEntry(textEntry.trim(), textTitle.trim(), [])
       console.log('Index: Firebase result:', result)
       
       if (result) {
@@ -369,6 +354,25 @@ export default function Home() {
         setShowTextInput(false)
         loadEntries()
         alert('SUCCESS: Entry saved!')
+
+        // Background: generate tags and update entry (do not block UI)
+        ;(async () => {
+          try {
+            const response = await fetch('/api/generate-tags', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: result.text })
+            })
+            if (response.ok) {
+              const { tags: generatedTags } = await response.json()
+              await FirebaseService.updateEntry(result.id, result.text, result.title || '', generatedTags)
+              // Optional: refresh entries silently after background tagging
+              loadEntries()
+            }
+          } catch (bgErr) {
+            console.error('Index: Background tag generation failed:', bgErr)
+          }
+        })()
       } else {
         alert('FAILED: Could not save entry')
       }

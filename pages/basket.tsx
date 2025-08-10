@@ -86,32 +86,37 @@ export default function Basket() {
 
     setIsSubmitting(true)
     try {
-      // Generate new tags for the edited text
-      const response = await fetch('/api/generate-tags', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: editText.trim() }),
-      })
-
-      let newTags: string[] = []
-      
-      if (response.ok) {
-        const { tags: generatedTags } = await response.json()
-        newTags = generatedTags
-      }
-
-      const success = await FirebaseService.updateEntry(editingId, editText.trim(), editTitle.trim(), newTags)
+      // Save edit immediately without waiting for tags
+      const success = await FirebaseService.updateEntry(editingId, editText.trim(), editTitle.trim(), undefined)
 
       if (success) {
         const targetId = editingId
         setEntries(prev => prev.map(e => 
           e.id === targetId 
-            ? { ...e, text: editText.trim(), title: editTitle.trim(), tags: newTags }
+            ? { ...e, text: editText.trim(), title: editTitle.trim() }
             : e
         ))
         cancelEditing()
+
+        // Background: generate tags and update entry (non-blocking)
+        ;(async () => {
+          try {
+            const response = await fetch('/api/generate-tags', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: editText.trim() }),
+            })
+            if (response.ok) {
+              const { tags: generatedTags } = await response.json()
+              await FirebaseService.updateEntry(targetId, editText.trim(), editTitle.trim(), generatedTags)
+              // Optional: refresh entries silently after background tagging
+              const refreshed = await FirebaseService.getEntries()
+              setEntries(refreshed)
+            }
+          } catch (bgErr) {
+            console.error('Basket: Background tag generation failed:', bgErr)
+          }
+        })()
       } else {
         alert('Failed to update entry')
       }
